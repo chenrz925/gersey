@@ -30,9 +30,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
-      - name: Checkout tag
-        if: ${{ github.event_name == 'workflow_dispatch'}}
-        run: git checkout ${{ github.event.inputs.tag }}
+#       - name: Checkout tag
+#         if: ${{ github.event_name == 'workflow_dispatch'}}
+#         run: git checkout ${{ github.event.inputs.tag }}
 
       - uses: actions/setup-python@v2
         name: Install Python
@@ -56,9 +56,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
-      - name: Checkout tag
-        if: ${{ github.event_name == 'workflow_dispatch'}}
-        run: git checkout ${{ github.event.inputs.tag }}
+#       - name: Checkout tag
+#         if: ${{ github.event_name == 'workflow_dispatch'}}
+#         run: git checkout ${{ github.event.inputs.tag }}
   
       - uses: actions/setup-python@v2
         name: Install Python
@@ -82,9 +82,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
-      - name: Checkout tag
-        if: ${{ github.event_name == 'workflow_dispatch'}}
-        run: git checkout ${{ github.event.inputs.tag }}
+#       - name: Checkout tag
+#         if: ${{ github.event_name == 'workflow_dispatch'}}
+#         run: git checkout ${{ github.event.inputs.tag }}
   
       - uses: actions/setup-python@v2
         name: Install Python
@@ -108,9 +108,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
-      - name: Checkout tag
-        if: ${{ github.event_name == 'workflow_dispatch'}}
-        run: git checkout ${{ github.event.inputs.tag }}
+#       - name: Checkout tag
+#         if: ${{ github.event_name == 'workflow_dispatch'}}
+#         run: git checkout ${{ github.event.inputs.tag }}
   
       - uses: actions/setup-python@v2
         name: Install Python
@@ -130,9 +130,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
-      - name: Checkout tag
-        if: ${{ github.event_name == 'workflow_dispatch'}}
-        run: git checkout ${{ github.event.inputs.tag }}
+#       - name: Checkout tag
+#         if: ${{ github.event_name == 'workflow_dispatch'}}
+#         run: git checkout ${{ github.event.inputs.tag }}
   
       - uses: actions/setup-python@v2
         name: Install Python
