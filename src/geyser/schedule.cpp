@@ -6,7 +6,7 @@
 
 
 void geyser::LinearSchedule::operator()(std::map<const std::string, py::object> &context, py::list profile) {
-    for (auto &execute: profile) {
+    for (auto execute: profile) {
         auto execute_profile = execute.cast<py::dict>();
         auto name = execute_profile["__name__"].cast<std::string>();
         auto enable = execute_profile["__enable__"].cast<py::bool_>();
