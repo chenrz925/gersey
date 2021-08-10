@@ -35,7 +35,7 @@ jobs:
         run: |
           git fetch origin tag ${{ github.event.inputs.tag }}
           git rev-parse ${{ github.event.inputs.tag }}
-          git checkout -b main ${{ github.event.inputs.tag }}
+          git checkout -b ${{ github.event.inputs.tag }} ${{ github.event.inputs.tag }}
 
       - uses: actions/setup-python@v2
         name: Install Python
@@ -64,7 +64,7 @@ jobs:
         run: |
           git fetch origin tag ${{ github.event.inputs.tag }}
           git rev-parse ${{ github.event.inputs.tag }}
-          git checkout -b main ${{ github.event.inputs.tag }}
+          git checkout -b ${{ github.event.inputs.tag }} ${{ github.event.inputs.tag }}
   
       - uses: actions/setup-python@v2
         name: Install Python
@@ -93,7 +93,7 @@ jobs:
         run: |
           git fetch origin tag ${{ github.event.inputs.tag }}
           git rev-parse ${{ github.event.inputs.tag }}
-          git checkout -b main ${{ github.event.inputs.tag }}
+          git checkout -b ${{ github.event.inputs.tag }} ${{ github.event.inputs.tag }}
   
       - uses: actions/setup-python@v2
         name: Install Python
@@ -122,7 +122,7 @@ jobs:
         run: |
           git fetch origin tag ${{ github.event.inputs.tag }}
           git rev-parse ${{ github.event.inputs.tag }}
-          git checkout -b main ${{ github.event.inputs.tag }}
+          git checkout -b ${{ github.event.inputs.tag }} ${{ github.event.inputs.tag }}
   
       - uses: actions/setup-python@v2
         name: Install Python
@@ -147,7 +147,7 @@ jobs:
         run: |
           git fetch origin tag ${{ github.event.inputs.tag }}
           git rev-parse ${{ github.event.inputs.tag }}
-          git checkout -b main ${{ github.event.inputs.tag }}
+          git checkout -b ${{ github.event.inputs.tag }} ${{ github.event.inputs.tag }}
   
       - uses: actions/setup-python@v2
         name: Install Python
