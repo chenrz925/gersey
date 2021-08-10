@@ -65,18 +65,3 @@ def runtime_info(ctx):
     ctx.logger.info(f'Python build {platform.python_compiler()} {platform.python_build()[1]}')
     ctx.logger.info(f'Operating System {platform.platform()}')
 
-
-@Geyser.composable(auto_compose=False)
-class ObjectPool(dict):
-    def __getattr__(self, item):
-        if item in self.__dir__():
-            return getattr(super(ObjectPool, self), item)
-        else:
-            return self[item]
-
-    def __setattr__(self, key, value):
-        if key in self.__dir__():
-            return setattr(super(ObjectPool, self), key, value)
-        else:
-            self[key] = value
-

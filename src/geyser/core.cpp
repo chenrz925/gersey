@@ -113,7 +113,13 @@ void geyser::Core::execute(py::dict profile) {
 
 std::string geyser::Core::compiler() const {
     std::ostringstream info;
+#ifdef __VERSION__
     info << __VERSION__ << " " << __DATE__ << " " << __TIME__;
+#elifdef _MSC_FULL_VER
+    info << "MSVC" << " " << _MSC_FULL_VER << " " << __DATE__ << " " << __TIME__;
+#elifdef _MSC_VER
+    info << "MSVC" << " " << _MSC_VER << " " << __DATE__ << " " << __TIME__;
+#endif
     return info.str();
 }
 
