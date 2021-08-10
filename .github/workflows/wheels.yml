@@ -30,11 +30,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
-      - name: Checkout tag
+      - name: Checkout tag ${{ github.event.inputs.tag }}
         if: ${{ github.event_name == 'workflow_dispatch'}}
         run: |
-          git fetch
-          git tag
+          git fetch origin tag ${{ github.event.inputs.tag }}
+          git rev-parse ${{ github.event.inputs.tag }}
           git checkout -b main ${{ github.event.inputs.tag }}
 
       - uses: actions/setup-python@v2
@@ -59,11 +59,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
-      - name: Checkout tag
+      - name: Checkout tag ${{ github.event.inputs.tag }}
         if: ${{ github.event_name == 'workflow_dispatch'}}
         run: |
-          git fetch
-          git tag
+          git fetch origin tag ${{ github.event.inputs.tag }}
+          git rev-parse ${{ github.event.inputs.tag }}
           git checkout -b main ${{ github.event.inputs.tag }}
   
       - uses: actions/setup-python@v2
@@ -88,11 +88,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
-      - name: Checkout tag
+      - name: Checkout tag ${{ github.event.inputs.tag }}
         if: ${{ github.event_name == 'workflow_dispatch'}}
         run: |
-          git fetch
-          git tag
+          git fetch origin tag ${{ github.event.inputs.tag }}
+          git rev-parse ${{ github.event.inputs.tag }}
           git checkout -b main ${{ github.event.inputs.tag }}
   
       - uses: actions/setup-python@v2
@@ -117,11 +117,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
-      - name: Checkout tag
+      - name: Checkout tag ${{ github.event.inputs.tag }}
         if: ${{ github.event_name == 'workflow_dispatch'}}
         run: |
-          git fetch
-          git tag
+          git fetch origin tag ${{ github.event.inputs.tag }}
+          git rev-parse ${{ github.event.inputs.tag }}
           git checkout -b main ${{ github.event.inputs.tag }}
   
       - uses: actions/setup-python@v2
@@ -142,11 +142,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
-      - name: Checkout tag
+      - name: Checkout tag ${{ github.event.inputs.tag }}
         if: ${{ github.event_name == 'workflow_dispatch'}}
         run: |
-          git fetch
-          git tag
+          git fetch origin tag ${{ github.event.inputs.tag }}
+          git rev-parse ${{ github.event.inputs.tag }}
           git checkout -b main ${{ github.event.inputs.tag }}
   
       - uses: actions/setup-python@v2
