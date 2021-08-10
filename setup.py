@@ -11,7 +11,15 @@ import os
 from glob import glob
 
 from setuptools import setup, find_packages
-from pybind11.setup_helpers import Pybind11Extension, build_ext
+
+try:
+    from pybind11.setup_helpers import Pybind11Extension, build_ext
+except ModuleNotFoundError:
+    import pip
+
+    pip.main(['install', 'pybind11'])
+    del pip
+    from pybind11.setup_helpers import Pybind11Extension, build_ext
 import pathlib
 
 
