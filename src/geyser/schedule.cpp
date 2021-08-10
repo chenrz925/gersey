@@ -12,22 +12,40 @@ void geyser::LinearSchedule::operator()(std::map<const std::string, py::object> 
         auto enable = execute_profile["__enable__"].cast<py::bool_>();
         if (enable) {
             if (context.find(name) == context.end()) {
-                std::ostringstream error_info;
-                error_info << "Please compose \"" << name << "\" before execute it.";
-                throw py::import_error(error_info.str());
+                raise_not_composed(name);
             } else {
                 auto executable = context.at(name);
                 if (hasattr(executable.get_type().cast<py::type>(), "__call__")) {
-                    executable();
+                    execute_once(executable);
                 } else {
-                    std::ostringstream error_info;
-                    error_info << "Composed \"" << name << "\" is not a executable, mro: ";
-                    for (auto &item : executable.get_type().attr("mro")()) {
-                        error_info << py::str(item).cast<std::string>() << " ";
-                    }
-                    throw py::value_error(error_info.str());
+                    raise_not_executable(name, executable);
                 }
             }
         }
     }
+}
+
+void geyser::LinearSchedule::raise_not_composed(const std::string &name) const {
+    std::ostringstream error_info;
+    error_info << "Please compose \"" << name << "\" before execute it.";
+    throw py::import_error(error_info.str());
+}
+
+void geyser::LinearSchedule::execute_once(const pybind11::object &executable) const {
+    py::object proxy = executable();
+    if (!proxy.is(py::none()) && pybind11::isinstance<py::dict>(proxy)) {
+        py::dict proxy_dict = proxy.cast<py::dict>();
+        for (auto &item : proxy_dict) {
+            executable.attr("__dict__").cast<py::dict>()[item.first] = item.second;
+        }
+    }
+}
+
+void geyser::LinearSchedule::raise_not_executable(const std::string &name, const pybind11::object &executable) const {
+    std::ostringstream error_info;
+    error_info << "Composed \"" << name << "\" is not a executable, mro: ";
+    for (auto &item : executable.get_type().attr("mro")()) {
+        error_info << py::str(item).cast<std::string>() << " ";
+    }
+    throw py::value_error(error_info.str());
 }

@@ -1,4 +1,4 @@
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 __all__ = [
     'Geyser'
 ]
@@ -110,3 +110,5 @@ class Composable:
     def __init__(self, *args, **kwargs):
         for key, item in kwargs.items():
             setattr(self, key, item)
+
+

@@ -20,6 +20,12 @@ namespace geyser {
     class LinearSchedule : Schedule {
     public:
         virtual void operator()(std::map<const std::string, py::object> &context, py::list profile);
+
+        void raise_not_executable(const std::string &name, const pybind11::object &executable) const;
+
+        void execute_once(const pybind11::object &executable) const;
+
+        void raise_not_composed(const std::string &name) const;
     };
 }
 
