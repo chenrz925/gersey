@@ -1,4 +1,4 @@
-from . import main
+from . import Geyser
 
 if __name__ == '__main__':
-    main()
+    Geyser.entry()
