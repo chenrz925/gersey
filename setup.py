@@ -8,6 +8,7 @@ https://github.com/pypa/sampleproject
 # Always prefer setuptools over distutils
 import codecs
 import os
+import sys
 from glob import glob
 
 from setuptools import setup, find_packages
@@ -15,10 +16,7 @@ from setuptools import setup, find_packages
 try:
     from pybind11.setup_helpers import Pybind11Extension, build_ext
 except ModuleNotFoundError:
-    import pip
-
-    pip.main(['install', 'pybind11'])
-    del pip
+    os.system(f'{sys.executable} -m pip install pybind11')
     from pybind11.setup_helpers import Pybind11Extension, build_ext
 import pathlib
 

@@ -43,6 +43,9 @@ class EnvManager:
         for key, item in kwargs.items():
             environ[key] = item
 
+    def __contains__(self, item):
+        return environ.__contains__(item)
+
     def __getitem__(self, item):
         self.logger.debug(f'Get "{item}" from environ.')
         return environ.__getitem__(item)
