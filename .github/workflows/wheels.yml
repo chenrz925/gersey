@@ -33,8 +33,9 @@ jobs:
       - name: Checkout tag
         if: ${{ github.event_name == 'workflow_dispatch'}}
         run: |
-          pwd
-          git checkout ${{ github.event.inputs.tag }}
+          git fetch
+          git tag
+          git checkout -b main ${{ github.event.inputs.tag }}
 
       - uses: actions/setup-python@v2
         name: Install Python
@@ -60,7 +61,10 @@ jobs:
       
       - name: Checkout tag
         if: ${{ github.event_name == 'workflow_dispatch'}}
-        run: git checkout ${{ github.event.inputs.tag }}
+        run: |
+          git fetch
+          git tag
+          git checkout -b main ${{ github.event.inputs.tag }}
   
       - uses: actions/setup-python@v2
         name: Install Python
@@ -86,7 +90,10 @@ jobs:
       
       - name: Checkout tag
         if: ${{ github.event_name == 'workflow_dispatch'}}
-        run: git checkout ${{ github.event.inputs.tag }}
+        run: |
+          git fetch
+          git tag
+          git checkout -b main ${{ github.event.inputs.tag }}
   
       - uses: actions/setup-python@v2
         name: Install Python
@@ -112,7 +119,10 @@ jobs:
       
       - name: Checkout tag
         if: ${{ github.event_name == 'workflow_dispatch'}}
-        run: git checkout ${{ github.event.inputs.tag }}
+        run: |
+          git fetch
+          git tag
+          git checkout -b main ${{ github.event.inputs.tag }}
   
       - uses: actions/setup-python@v2
         name: Install Python
@@ -134,7 +144,10 @@ jobs:
       
       - name: Checkout tag
         if: ${{ github.event_name == 'workflow_dispatch'}}
-        run: git checkout ${{ github.event.inputs.tag }}
+        run: |
+          git fetch
+          git tag
+          git checkout -b main ${{ github.event.inputs.tag }}
   
       - uses: actions/setup-python@v2
         name: Install Python
