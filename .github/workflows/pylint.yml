@@ -19,4 +19,4 @@ jobs:
         pip install pylint pybind11
     - name: Analysing the code with pylint
       run: |
-        pylint `ls -R|grep .py$|xargs`
+        pylint `ls -R src|grep .py$|xargs`
