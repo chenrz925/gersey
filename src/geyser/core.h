@@ -28,6 +28,8 @@ namespace geyser {
 
         void fill_kwargs(py::dict &profile, py::kwargs &kwargs, const std::string &key, pybind11::handle &value);
 
+        std::string mirror_key(const std::string &key, py::dict &profile) const;
+
     public:
         Core();
 
@@ -42,8 +44,6 @@ namespace geyser {
         std::string compiler() const;
 
         void execute(py::dict profile);
-
-        void mirror_key(const std::string &key, py::dict &profile, std::string &mirrored_key) const;
     };
 }
 
