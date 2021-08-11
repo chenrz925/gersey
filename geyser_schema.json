@@ -86,6 +86,14 @@
             "pattern": "([a-zA-Z_][a-zA-Z0-9_]*\\.)*([a-zA-Z_][a-zA-Z0-9_]*)",
             "title": "Reference",
             "description": "Reference of a composable Python class."
+          },
+          "__mirror__": {
+            "type": "object",
+            "title": "Mirror keys",
+            "description": "Mirror these keys in current object.",
+            "additionalProperties": {
+              "type": "string"
+            }
           }
         },
         "additionalProperties": true,
