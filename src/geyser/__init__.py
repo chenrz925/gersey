@@ -53,7 +53,7 @@ class Geyser:
             return json.load(fp)
         elif format == 'yaml':
             from ruamel import yaml
-            return yaml.load(fp)
+            return yaml.load(fp, yaml.SafeLoader)
         elif format == 'toml':
             import toml
             return toml.load(fp)
@@ -111,4 +111,8 @@ class Composable:
         for key, item in kwargs.items():
             setattr(self, key, item)
 
+    def __mod__(self, item) -> bool:
+        return hasattr(self, item)
 
+    def __bool__(self) -> bool:
+        return hasattr(self, '__call__')

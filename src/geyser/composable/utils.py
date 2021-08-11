@@ -1,6 +1,7 @@
 from tempfile import TemporaryDirectory
 from os import makedirs, environ
 from pathlib import Path
+from logging.config import dictConfig
 
 from geyser import Geyser
 
@@ -67,4 +68,13 @@ def runtime_info(ctx):
     ctx.logger.info(f'Geyser Core build {Geyser.core_build()}')
     ctx.logger.info(f'Python build {platform.python_compiler()} {platform.python_build()[1]}')
     ctx.logger.info(f'Operating System {platform.platform()}')
+    return {
+        'platform': platform,
+        'version': Geyser.version(),
+    }
 
+
+@Geyser.composable(auto_compose=False)
+class LogManager:
+    def __init__(self, **kwargs):
+        dictConfig(kwargs)
