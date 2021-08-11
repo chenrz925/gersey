@@ -65,15 +65,7 @@ py::object geyser::Core::compose(const std::string &name, py::dict profile) {
         auto key = it.first.cast<std::string>();
         auto value = it.second;
         if (key.size() < 4 || (!(key.substr(0, 2) == "__") && !(key.substr(key.size() - 2, 2) == "__"))) {
-            if (py::isinstance<py::str>(value) && value.cast<py::str>().cast<std::string>() == "__compose__") {
-                if (context.find(key) != context.end()) {
-                    kwargs[py::str(key.c_str())] = context.at(key);
-                } else {
-                    kwargs[py::str(key.c_str())] = compose(key, profile);
-                }
-            } else {
-                kwargs[py::str(key.c_str())] = value;
-            }
+            fill_kwargs(profile, kwargs, key, value);
         }
     }
     if (context.find(name) != context.end()) {
@@ -85,6 +77,31 @@ py::object geyser::Core::compose(const std::string &name, py::dict profile) {
     kwargs["logger"] = item_logger;
     context.insert({name, type_t(**kwargs)});
     return context.at(name);
+}
+
+void geyser::Core::fill_kwargs(py::dict &profile, py::kwargs &kwargs, const std::string &key, pybind11::handle &value) {
+    std::string mirrored_key;
+    mirror_key(key, profile, mirrored_key);
+    if (pybind11::isinstance<py::str>(value) && value.cast<py::str>().cast<std::string>() == "__compose__") {
+        if (context.find(key) != context.end()) {
+            kwargs[py::str(mirrored_key.c_str())] = context.at(key);
+        } else {
+            kwargs[py::str(mirrored_key.c_str())] = compose(key, profile);
+        }
+    } else {
+        kwargs[py::str(mirrored_key.c_str())] = value;
+    }
+}
+
+void geyser::Core::mirror_key(const std::string &key, py::dict &profile, std::string &mirrored_key) const {
+    py::dict mirrors;
+    if (profile[key.c_str()].contains("__mirror__"))
+        mirrors = profile[key.c_str()]["__mirror__"].cast<py::dict>();
+    if (mirrors.contains(key)) {
+        mirrored_key = mirrors[key.c_str()].cast<py::str>().cast<std::string>();
+    } else {
+        mirrored_key = key;
+    }
 }
 
 std::string geyser::Core::extract_module(const std::string &reference) {
