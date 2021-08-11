@@ -94,8 +94,8 @@ void geyser::Core::fill_kwargs(py::dict &profile, py::kwargs &kwargs, const std:
 
 std::string geyser::Core::mirror_key(const std::string &key, py::dict &profile) const {
     py::dict mirrors;
-    if (profile[key.c_str()].contains("__mirror__"))
-        mirrors = profile[key.c_str()]["__mirror__"].cast<py::dict>();
+    if (profile.contains("__mirror__"))
+        mirrors = profile["__mirror__"].cast<py::dict>();
     if (mirrors.contains(key)) {
         return mirrors[key.c_str()].cast<py::str>().cast<std::string>();
     } else {
