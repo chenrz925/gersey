@@ -1,4 +1,4 @@
-__version__ = '0.0.7'
+__version__ = '0.0.8'
 __all__ = [
     'Geyser'
 ]
@@ -61,21 +61,28 @@ class Geyser:
             raise ValueError('Unsupported format of profile')
 
     @classmethod
-    def composable(cls, name: Text = None, auto_compose: bool = True, **kwargs):
-        def wrapper(clz):
-            cls._register_class(name, clz, auto_compose)
-            return clz
+    def composable(cls, clazz=None, name: Text = None, auto_compose: bool = True, **kwargs):
+        if clazz is None:
+            def wrapper(clz):
+                cls._register_class(name, clz, auto_compose)
+                return clz
 
-        return wrapper
+            return wrapper
+        else:
+            cls._register_class(name, clazz, False)
 
     @classmethod
-    def executable(cls, name: Text = None, **kwargs):
-        def wrapper(func):
-            clz = cls._build_executable(name, func)
-            cls._register_class(clz.__name__, clz, True)
-            return clz
+    def executable(cls, function=None, name: Text = None, **kwargs):
+        if function is None:
+            def wrapper(func):
+                clz = cls._build_executable(name, func)
+                cls._register_class(clz.__name__, clz, True)
+                return clz
 
-        return wrapper
+            return wrapper
+        else:
+            clz = cls._build_executable(name, function)
+            cls._register_class(clz.__name__, clz, True)
 
     @classmethod
     def access(cls, reference: Text) -> type:
