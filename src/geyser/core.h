@@ -44,6 +44,12 @@ namespace geyser {
         std::string compiler() const;
 
         void execute(py::dict profile);
+
+        int class_count() const;
+
+        int object_count() const;
+
+        py::list references() const;
     };
 }
 

@@ -1,4 +1,4 @@
-__version__ = '0.0.8'
+__version__ = '0.0.9'
 __all__ = [
     'Geyser'
 ]
@@ -8,6 +8,7 @@ from io import FileIO
 from typing import Text, Callable
 from pathlib import Path
 from sys import path as sys_path
+from inspect import signature, Parameter
 
 from _geysercpp import *
 
@@ -69,7 +70,67 @@ class Geyser:
 
             return wrapper
         else:
-            cls._register_class(name, clazz, False)
+            new_clazz = cls._safe_init_class(clazz)
+            cls._register_class(name, new_clazz, False)
+
+    @classmethod
+    def _safe_init_class(cls, clazz):
+        def safe_init(self, *args, **kwargs):
+            in_args = kwargs.pop('__args__') if '__args__' in kwargs else []
+            params = signature(clazz).parameters
+            args_slot = None
+
+            missing = []
+            undefined = []
+
+            for key, param in params.items():
+                if param.kind == Parameter.POSITIONAL_OR_KEYWORD or param.kind == Parameter.KEYWORD_ONLY:
+                    if param.name not in kwargs and param.name is Parameter.empty:
+                        missing.append(param)
+                elif param.kind == Parameter.POSITIONAL_ONLY:
+                    if args_slot is None:
+                        args_slot = []
+                    args_slot.append(param)
+                elif param.kind == Parameter.VAR_POSITIONAL:
+                    args_slot = param
+
+            for key, value in kwargs.items():
+                if key not in params.keys():
+                    undefined.append(key)
+
+            for key, value in params.items():
+                if value.kind == Parameter.VAR_KEYWORD:
+                    undefined.clear()
+
+            fill_args, fill_kwargs = [], {}
+
+            if isinstance(args_slot, list) and len(args_slot) != len(in_args):
+                raise ValueError(f'{len(args_slot)} argument(s) are/is needed, input {len(in_args)} argument(s).')
+            else:
+                fill_args.extend(in_args)
+
+            if len(missing) > 0:
+                missing_names = list(map(
+                    lambda param: param.name,
+                    missing
+                ))
+                raise ValueError(f'Argument(s) named {", ".join(missing_names)} is/are missing.')
+            if len(undefined) > 0:
+                fill_kwargs.update(filter(
+                    lambda it: it[0] not in undefined,
+                    kwargs.items()
+                ))
+            else:
+                fill_kwargs.update(kwargs.items())
+            print(fill_args)
+            print(fill_kwargs)
+            clazz.__init__(*fill_args, **fill_kwargs)
+
+        new_clazz = type(clazz.__name__, (clazz,), {
+            '__init__': safe_init,
+            '__module__': clazz.__module__
+        })
+        return new_clazz
 
     @classmethod
     def executable(cls, function=None, name: Text = None, **kwargs):
@@ -111,6 +172,18 @@ class Geyser:
                 cls._core.compose(key, compose)
             execute = profile['__execute__']
             cls._core.execute(execute)
+
+    @classmethod
+    def object_count(cls):
+        return cls._core.object_count
+
+    @classmethod
+    def class_count(cls):
+        return cls._core.class_count
+
+    @classmethod
+    def references(cls):
+        return cls._core.references
 
 
 class Composable:

@@ -141,4 +141,21 @@ std::string geyser::Core::compiler() const {
     return info.str();
 }
 
+int geyser::Core::class_count() const {
+    return classes.size();
+}
+
+int geyser::Core::object_count() const {
+    return context.size();
+}
+
+py::list geyser::Core::references() const {
+    py::list references;
+
+    for (auto &it : classes) {
+        references.append(py::str(it.first));
+    }
+
+    return references;
+}
 
