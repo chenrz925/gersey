@@ -1,4 +1,4 @@
-__version__ = '0.0.9'
+__version__ = '0.0.10'
 __all__ = [
     'Geyser'
 ]
@@ -124,7 +124,7 @@ class Geyser:
                 fill_kwargs.update(kwargs.items())
             print(fill_args)
             print(fill_kwargs)
-            clazz.__init__(*fill_args, **fill_kwargs)
+            clazz.__init__(self, *fill_args, **fill_kwargs)
 
         new_clazz = type(clazz.__name__, (clazz,), {
             '__init__': safe_init,
