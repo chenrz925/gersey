@@ -1,4 +1,4 @@
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 __all__ = [
     'Geyser'
 ]
@@ -190,7 +190,13 @@ class Composable:
             setattr(self, key, item)
 
     def __mod__(self, item) -> bool:
-        return hasattr(self, item)
+        if isinstance(item, (tuple, list)):
+            exists = False
+            for it in item:
+                exists = exists or hasattr(self, it)
+            return exists
+        else:
+            return hasattr(self, item)
 
     def __bool__(self) -> bool:
         return hasattr(self, '__call__')

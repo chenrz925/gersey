@@ -63,11 +63,11 @@ py::object geyser::Core::compose(const std::string &name, py::dict profile) {
     if (item_profile.contains("__compose__")) {
         auto composes = item_profile["__compose__"].cast<py::list>();
         for (auto &key: composes) {
-            item_profile[key] = "__compose__";
+            item_profile[key] = py::str("__compose__");
         }
     }
     auto type_t = access(reference);
-    for (auto &it : item_profile) {
+    for (auto it : item_profile) {
         auto key = it.first.cast<std::string>();
         auto value = it.second;
         if (key.size() < 4 || (!(key.substr(0, 2) == "__") && !(key.substr(key.size() - 2, 2) == "__"))) {
