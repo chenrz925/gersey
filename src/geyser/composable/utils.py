@@ -2,6 +2,9 @@ from tempfile import TemporaryDirectory
 from os import makedirs, environ
 from pathlib import Path
 from logging.config import dictConfig
+from typing import Text
+from uuid import uuid4
+from datetime import datetime
 
 from geyser import Geyser
 
@@ -78,3 +81,17 @@ def runtime_info(ctx):
 class LogManager:
     def __init__(self, **kwargs):
         dictConfig(kwargs)
+
+
+@Geyser.composable(auto_compose=False)
+class IdManager:
+    def __init__(self, annotation: Text, **kwargs):
+        self._uuid = uuid4().hex
+        self._timestamp = datetime.now().strftime('%Y%m%d%H%M%%D')
+        self._annotation = annotation
+
+    def __call__(self, *args, **kwargs):
+        if self._annotation is None:
+            return f'{self._timestamp}_{self._uuid}'
+        else:
+            return f'{self._annotation}_{self._timestamp}_{self._uuid}'

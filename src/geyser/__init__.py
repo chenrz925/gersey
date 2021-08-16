@@ -1,4 +1,4 @@
-__version__ = '0.0.10'
+__version__ = '0.1.0'
 __all__ = [
     'Geyser'
 ]
@@ -122,8 +122,6 @@ class Geyser:
                 ))
             else:
                 fill_kwargs.update(kwargs.items())
-            print(fill_args)
-            print(fill_kwargs)
             clazz.__init__(self, *fill_args, **fill_kwargs)
 
         new_clazz = type(clazz.__name__, (clazz,), {
@@ -137,13 +135,13 @@ class Geyser:
         if function is None:
             def wrapper(func):
                 clz = cls._build_executable(name, func)
-                cls._register_class(clz.__name__, clz, True)
+                cls._register_class(clz.__name__, clz, False)
                 return clz
 
             return wrapper
         else:
             clz = cls._build_executable(name, function)
-            cls._register_class(clz.__name__, clz, True)
+            cls._register_class(clz.__name__, clz, False)
 
     @classmethod
     def access(cls, reference: Text) -> type:
