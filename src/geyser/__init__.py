@@ -1,4 +1,4 @@
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 __all__ = [
     'Geyser'
 ]
@@ -183,6 +183,13 @@ class Geyser:
     def references(cls):
         return cls._core.references
 
+    @classmethod
+    def composable_module(cls, module):
+        for attr in dir(module):
+            attr_obj = getattr(module, attr)
+            if isinstance(attr_obj, type):
+                cls.composable(attr_obj, auto_compose=False)
+
 
 class Composable:
     def __init__(self, *args, **kwargs):
@@ -191,9 +198,9 @@ class Composable:
 
     def __mod__(self, item) -> bool:
         if isinstance(item, (tuple, list)):
-            exists = False
+            exists = True
             for it in item:
-                exists = exists or hasattr(self, it)
+                exists = exists and hasattr(self, it)
             return exists
         else:
             return hasattr(self, item)
