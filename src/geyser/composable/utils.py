@@ -87,7 +87,7 @@ class LogManager:
 class IdManager:
     def __init__(self, annotation: Text, **kwargs):
         self._uuid = uuid4().hex
-        self._timestamp = datetime.now().strftime('%Y%m%d%H%M%%D')
+        self._timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
         self._annotation = annotation
 
     def __call__(self, *args, **kwargs):

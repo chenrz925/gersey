@@ -94,6 +94,15 @@
             "additionalProperties": {
               "type": "string"
             }
+          },
+          "__compose__": {
+            "type": "array",
+            "title": "Composed keys",
+            "description": "Compose objects to these keys.",
+            "items": {
+              "type": "string",
+              "uniqueItems": true
+            }
           }
         },
         "additionalProperties": true,

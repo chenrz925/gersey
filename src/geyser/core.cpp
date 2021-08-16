@@ -60,6 +60,12 @@ py::object geyser::Core::compose(const std::string &name, py::dict profile) {
     py::kwargs kwargs;
     auto item_profile = profile[name.c_str()].cast<py::dict>();
     auto reference = item_profile["__reference__"].cast<std::string>();
+    if (item_profile.contains("__compose__")) {
+        auto composes = item_profile["__compose__"].cast<py::list>();
+        for (auto &key: composes) {
+            item_profile[key] = "__compose__";
+        }
+    }
     auto type_t = access(reference);
     for (auto &it : item_profile) {
         auto key = it.first.cast<std::string>();
