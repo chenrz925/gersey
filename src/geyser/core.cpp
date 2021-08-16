@@ -62,7 +62,7 @@ py::object geyser::Core::compose(const std::string &name, py::dict profile) {
     auto reference = item_profile["__reference__"].cast<std::string>();
     if (item_profile.contains("__compose__")) {
         auto composes = item_profile["__compose__"].cast<py::list>();
-        for (auto &key: composes) {
+        for (auto key: composes) {
             item_profile[key] = py::str("__compose__");
         }
     }
