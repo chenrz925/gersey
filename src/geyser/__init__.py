@@ -207,3 +207,9 @@ class Composable:
 
     def __bool__(self) -> bool:
         return hasattr(self, '__call__')
+
+    def __invert__(self):
+        if hasattr(self, '__return__'):
+            return self.__return__
+        else:
+            raise NotImplementedError("No returned object.")

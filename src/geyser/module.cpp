@@ -1,6 +1,7 @@
 #include <pybind11/pybind11.h>
 
 #include "core.h"
+#include "geyser.h"
 
 namespace py = pybind11;
 
@@ -16,4 +17,12 @@ PYBIND11_MODULE(_geysercpp, m) {
             .def_property_readonly("class_count", &geyser::Core::class_count)
             .def_property_readonly("object_count", &geyser::Core::object_count)
             .def_property_readonly("references", &geyser::Core::references);
+}
+
+PYBIND11_MODULE(cgeyser, m) {
+    py::class_<geyser::Geyser>(m, "Geyser")
+            .def_static("version", &geyser::Geyser::version)
+            .def_static("build", &geyser::Geyser::build);
+
+    geyser::Bucket::define(py::class_<geyser::Bucket>(m, "Bucket"));
 }

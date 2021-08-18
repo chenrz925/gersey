@@ -33,10 +33,14 @@ void geyser::LinearSchedule::raise_not_composed(const std::string &name) const {
 
 void geyser::LinearSchedule::execute_once(const pybind11::object &executable) const {
     py::object proxy = executable();
-    if (!proxy.is(py::none()) && pybind11::isinstance<py::dict>(proxy)) {
-        py::dict proxy_dict = proxy.cast<py::dict>();
-        for (auto &item : proxy_dict) {
-            executable.attr("__dict__").cast<py::dict>()[item.first] = item.second;
+    if (!proxy.is(py::none())) {
+        if (py::isinstance<py::dict>(proxy)) {
+            auto proxy_dict = proxy.cast<py::dict>();
+            for (auto item : proxy_dict) {
+                executable.attr("__dict__").cast<py::dict>()[item.first] = item.second;
+            }
+        } else {
+            executable.attr("__dict__").cast<py::dict>()["__return__"] = proxy;
         }
     }
 }

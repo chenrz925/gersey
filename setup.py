@@ -235,9 +235,17 @@ setup(
 
     ext_modules=[
         Pybind11Extension(
-            "_geysercpp",
-            sorted(glob('src/geyser/*.cpp'))
-        )
+            name="_geysercpp",
+            sources=sorted(glob('src/geyser/*.cpp')),
+            include_dirs=sorted(glob('src/geyser/*.h')),
+            libraries=[],
+        ),
+        Pybind11Extension(
+            name="cgeyser",
+            sources=sorted(glob('src/geyser/*.cpp')),
+            include_dirs=sorted(glob('src/geyser/*.h')),
+            libraries=[],
+        ),
     ],
 
     cmdclass={"build_ext": build_ext},
