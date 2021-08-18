@@ -10,7 +10,7 @@ from pathlib import Path
 from sys import path as sys_path
 from inspect import signature, Parameter
 
-from _geysercpp import *
+from _geyser import *
 
 
 class Geyser:

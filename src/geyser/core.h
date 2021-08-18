@@ -10,6 +10,7 @@
 #include <thread>
 #include <sstream>
 #include <pybind11/pybind11.h>
+#include <pybind11/operators.h>
 
 #include "schedule.h"
 
