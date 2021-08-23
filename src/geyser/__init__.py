@@ -1,4 +1,4 @@
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 __all__ = [
     'Geyser'
 ]
@@ -31,6 +31,7 @@ class Geyser:
             new_dict = {}
             new_dict.update(clazz.__dict__)
             new_dict['__init__'] = Composable.__dict__['__init__']
+            new_dict['__raw__'] = clazz
             clazz = type(name, (Composable,), new_dict)
         return cls._core.register_class(name, clazz)
 
@@ -44,6 +45,7 @@ class Geyser:
             '__call__': func,
             '__module__': func.__module__,
             '__init__': Composable.__init__,
+            '__raw__': func
         })
         return clazz
 
@@ -126,7 +128,8 @@ class Geyser:
 
         new_clazz = type(clazz.__name__, (clazz,), {
             '__init__': safe_init,
-            '__module__': clazz.__module__
+            '__module__': clazz.__module__,
+            '__raw__': clazz
         })
         return new_clazz
 
@@ -192,6 +195,8 @@ class Geyser:
 
 
 class Composable:
+    __raw__ = None
+
     def __init__(self, *args, **kwargs):
         for key, item in kwargs.items():
             setattr(self, key, item)
@@ -213,3 +218,7 @@ class Composable:
             return self.__return__
         else:
             raise NotImplementedError("No returned object.")
+
+    @classmethod
+    def raw(cls):
+        return cls.__raw__
