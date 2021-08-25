@@ -6,26 +6,36 @@
 #define GEYSER_LOGGER_H
 
 #include <map>
+#include <vector>
 #include <memory>
 #include "pybind11/pybind11.h"
+#include "spdlog/spdlog.h"
+#include "fmt/format.h"
 
 namespace py = pybind11;
+namespace logging = spdlog;
 
 namespace geyser {
     class Logger {
     private:
-        static std::map<std::string, std::shared_ptr<Logger>> logger_cache;
-        static py::module_ logging_module;
+        static std::map<std::string, std::shared_ptr<Logger>> cache;
 
-        explicit Logger(py::object logger_);
+        explicit Logger(const std::string &name, bool multi_thread = false);
 
-        Logger() = default;
+        std::shared_ptr<logging::logger> logger = nullptr;
 
-        py::object logger;
+        std::string make_message(const py::args &args, const py::kwargs &kwargs);
+
     public:
         static void bind(py::class_<Logger> &&clazz);
 
+        static void configure(const py::dict& profile);
+
         static Logger &get(const std::string &name);
+
+        static Logger &get(const std::string &name, bool multi_thread);
+
+        const std::string &name();
 
         void debug(const py::args &args, const py::kwargs &kwargs);
 

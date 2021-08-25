@@ -6,3 +6,7 @@
 	path = fmt
 	url = https://github.com/fmtlib/fmt.git
 	branch = master
+[submodule "spdlog"]
+	path = spdlog
+	url = https://github.com/gabime/spdlog.git
+	branch = master
