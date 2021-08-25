@@ -6,7 +6,7 @@ from typing import Text
 from uuid import uuid4
 from datetime import datetime
 
-from geyser import Geyser
+from _geyser import Geyser
 
 
 @Geyser.composable()
@@ -29,11 +29,11 @@ class PathManager:
         return self._makedirs_join(*args, root_dir=root_dir)
 
     def home(self, *args) -> Path:
-        root_dir = self._homedir.joinpath('geyser')
+        root_dir = self._homedir.joinpath('_geyser')
         return self._makedirs_join(*args, root_dir=root_dir)
 
     def current(self, *args) -> Path:
-        root_dir = self._curdir / 'geyser'
+        root_dir = self._curdir / '_geyser'
         return self._makedirs_join(*args, root_dir=root_dir)
 
 

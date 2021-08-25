@@ -154,7 +154,7 @@ class Geyser:
     def entry(cls):
         sys_path.append(str(Path('.').absolute()))
         parser = argparse.ArgumentParser(
-            'geyser', description='Geyser: compose & execute python objects.'
+            '_geyser', description='Geyser: compose & execute python objects.'
         )
         parser.add_argument(
             'profile',
