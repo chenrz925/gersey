@@ -7,10 +7,16 @@
 
 std::map<std::string, std::shared_ptr<geyser::Logger>> geyser::Logger::cache;
 
+std::vector<logging::sink_ptr> geyser::Logger::sinks;
+
+std::string geyser::Logger::pattern = "%^(%Y-%m-%d %H:%M:%S,%e)[%L][%P][%t][%n]%$ %v";
+
+void geyser::Logger::init() {
+    Logger::configure();
+}
+
 void geyser::Logger::bind(py::class_<Logger> &&clazz) {
-    clazz.def_static("configure", &Logger::configure);
-    clazz.def_static("get", py::overload_cast<const std::string &>(&Logger::get));
-    clazz.def_static("get", py::overload_cast<const std::string &, bool>(&Logger::get));
+    clazz.def_static("get", &Logger::get);
     clazz.def_property_readonly("name", &Logger::name);
     clazz.def("debug", py::overload_cast<const py::args &, const py::kwargs &>(&Logger::debug));
     clazz.def("debug", py::overload_cast<const std::string &>(&Logger::debug));
@@ -24,34 +30,40 @@ void geyser::Logger::bind(py::class_<Logger> &&clazz) {
     clazz.def("critical", py::overload_cast<const std::string &>(&Logger::critical));
 }
 
-void geyser::Logger::configure(const py::dict& profile) {
-    if (profile.contains("__format__"))
-        logging::set_pattern(py::str(profile["__format__"]).cast<std::string>());
-    else
-        logging::set_pattern("%^(%Y-%m-%d %H:%M%S,%e)[%L][%P][%t][%n]%$: %v");
-    if (profile.contains("__stream__")) {
-        auto stream_profiles = profile["__stream__"].cast<py::list>();
-        for (auto stream_profile : stream_profiles) {
+void geyser::Logger::configure_sink(const py::dict &profile) {
 
-        }
-    }
 }
 
-geyser::Logger &geyser::Logger::get(const std::string &name, bool multi_thread) {
+void geyser::Logger::configure() {
+    logging::set_pattern(Logger::pattern);
+    Logger::sinks.clear();
+    Logger::sinks.push_back(std::make_shared<logging::sinks::stdout_color_sink_mt>());
+}
+
+void geyser::Logger::configure(const py::dict &profile) {
+    if (profile.contains("__format__"))
+        Logger::pattern = py::str(profile["__format__"]).cast<std::string>();
+    logging::set_pattern(Logger::pattern);
+
+    Logger::sinks.clear();
+    if (profile.contains("__stream__")) {
+        auto stream_profiles = profile["__stream__"].cast<py::list>();
+        for (auto stream_profile : stream_profiles)
+            configure_sink(stream_profile.cast<py::dict>());
+    } else
+        Logger::sinks.push_back(std::make_shared<logging::sinks::stdout_color_sink_mt>());
+
+}
+
+geyser::Logger &geyser::Logger::get(const std::string &name) {
     if (Logger::cache.find(name) == Logger::cache.end())
         Logger::cache.insert({name, std::make_shared<Logger>(Logger(name))});
     return *Logger::cache.at(name);
 }
 
-geyser::Logger &geyser::Logger::get(const std::string &name) {
-    return geyser::Logger::get(name, false);
-}
-
-geyser::Logger::Logger(const std::string &name, bool multi_thread) {
-    if (multi_thread)
-        this->logger = logging::stdout_color_mt(name);
-    else
-        this->logger = logging::stdout_color_st(name);
+geyser::Logger::Logger(const std::string &name) {
+    this->logger = std::make_shared<logging::logger>(name, std::begin(Logger::sinks), std::end(Logger::sinks));
+    this->logger->set_pattern(Logger::pattern);
 }
 
 const std::string &geyser::Logger::name() {

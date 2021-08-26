@@ -20,20 +20,28 @@ namespace geyser {
     private:
         static std::map<std::string, std::shared_ptr<Logger>> cache;
 
-        explicit Logger(const std::string &name, bool multi_thread = false);
+        static std::vector<logging::sink_ptr> sinks;
+
+        static std::string pattern;
+
+        explicit Logger(const std::string &name);
 
         std::shared_ptr<logging::logger> logger = nullptr;
 
         std::string make_message(const py::args &args, const py::kwargs &kwargs);
 
     public:
+        static void init();
+
         static void bind(py::class_<Logger> &&clazz);
 
-        static void configure(const py::dict& profile);
+        static void configure();
+
+        static void configure(const py::dict &profile);
+
+        static void configure_sink(const py::dict &profile);
 
         static Logger &get(const std::string &name);
-
-        static Logger &get(const std::string &name, bool multi_thread);
 
         const std::string &name();
 

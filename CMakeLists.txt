@@ -14,6 +14,10 @@ pybind11_add_module(geyser ${GEYSER_SOURCES})
 
 # EXAMPLE_VERSION_INFO is defined by setup.py and passed into the C++ code as a
 # define (VERSION_INFO) here.
-target_compile_definitions(geyser PRIVATE VERSION_INFO=${GEYSER_VERSION_INFO})
+target_compile_definitions(geyser PRIVATE GEYSER_VERSION_INFO=${GEYSER_VERSION_INFO})
+target_compile_definitions(geyser PRIVATE GEYSER_SYSTEM_NAME=${CMAKE_SYSTEM_NAME})
+target_compile_definitions(geyser PRIVATE GEYSER_SYSTEM_VERSION=${CMAKE_SYSTEM_VERSION})
+target_compile_definitions(geyser PRIVATE GEYSER_COMPILER_NAME=${CMAKE_CXX_COMPILER_ID})
+target_compile_definitions(geyser PRIVATE GEYSER_COMPILER_VERSION=${CMAKE_CXX_COMPILER_VERSION})
 target_link_libraries(geyser PRIVATE fmt::fmt)
 target_link_libraries(geyser PRIVATE spdlog)
