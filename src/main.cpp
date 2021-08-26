@@ -6,6 +6,6 @@ namespace py = pybind11;
 PYBIND11_MODULE(geyser, m) {
     geyser::Geyser::bind(py::class_<geyser::Geyser>(m, "Geyser"));
     geyser::Logger::bind(py::class_<geyser::Logger>(m, "Logger"));
-
+    geyser::Profile::bind(py::class_<geyser::Profile>(m, "Profile"));
     geyser::Geyser::init();
 }

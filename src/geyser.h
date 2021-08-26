@@ -10,6 +10,7 @@
 
 #include "pybind11/pybind11.h"
 #include "logger.h"
+#include "profile.h"
 
 namespace py = pybind11;
 

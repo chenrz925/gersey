@@ -10,3 +10,11 @@
 	path = spdlog
 	url = https://github.com/gabime/spdlog.git
 	branch = master
+[submodule "rapidjson"]
+	path = rapidjson
+	url = https://github.com/Tencent/rapidjson.git
+	branch = master
+[submodule "yaml-cpp"]
+	path = yaml-cpp
+	url = https://github.com/jbeder/yaml-cpp.git
+	branch = master
