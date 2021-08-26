@@ -15,9 +15,10 @@ void geyser::Geyser::bind(py::class_<Geyser> &&clazz) {
 
 int geyser::Geyser::entry() {
     auto &logger = geyser::Logger::get("geyser.Geyser");
-    logger.info(fmt::format("geyser v{}", GEYSER_MACRO_STRINGIFY(GEYSER_VERSION_INFO)));
+    auto platform = py::module_::import("platform");
+    logger.info(fmt::format("geyser {}", GEYSER_MACRO_STRINGIFY(GEYSER_VERSION_INFO)));
     logger.info(fmt::format(
-            "build {} {} {} {} {} {} {}",
+            "{} {} {} {} {} {} {}",
             GEYSER_MACRO_STRINGIFY(GEYSER_SYSTEM_NAME),
             GEYSER_MACRO_STRINGIFY(GEYSER_SYSTEM_VERSION),
             GEYSER_MACRO_STRINGIFY(GEYSER_SYSTEM_PROCESSOR),
@@ -25,6 +26,13 @@ int geyser::Geyser::entry() {
             GEYSER_MACRO_STRINGIFY(GEYSER_COMPILER_VERSION),
             __DATE__, __TIME__
     ));
+//    auto platform_system = platform.attr("python_version")().cast<py::str>().cast<std::string>();
+    logger.info(fmt::format(
+            "python {} {} ",
+            py::str(platform.attr("python_version")()).cast<std::string>(),
+            platform.attr("python_compiler")().cast<py::str>().cast<std::string>()
+    ));
+    logger.info(platform.attr("version")().cast<py::str>().cast<std::string>());
 
     return 0;
 }

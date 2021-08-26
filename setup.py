@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import codecs
 import os
 import re
 import subprocess
@@ -6,6 +7,20 @@ import sys
 
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
+from distutils.command.build_scripts import build_scripts
+from stat import ST_MODE
+from distutils import sysconfig
+from distutils.dep_util import newer
+from distutils.util import convert_path
+from distutils import log
+import tokenize
+
+
+def read(rel_path):
+    here = os.path.abspath(os.path.dirname(__file__))
+    with codecs.open(os.path.join(here, rel_path), 'r') as fp:
+        return fp.read()
+
 
 # Convert distutils Windows platform specifiers to CMake -A arguments
 PLAT_TO_CMAKE = {
@@ -15,6 +30,7 @@ PLAT_TO_CMAKE = {
     "win-arm64": "ARM64",
 }
 
+first_line_re = re.compile(b'^#!.*python[0-9.]*([ \t].*)?$')
 
 # A CMakeExtension needs a sourcedir instead of a file list.
 # The name must be the _single_ output extension from the CMake build.
@@ -25,9 +41,15 @@ class CMakeExtension(Extension):
         self.sourcedir = os.path.abspath(sourcedir)
 
 
-class CMakeBuild(build_ext):
+context = {}
+
+
+class CMakeBuildExt(build_ext):
+
     def build_extension(self, ext):
         extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
+        context['EXT'] = extdir
+        context['TEMP'] = os.path.abspath(self.build_temp)
 
         # required for auto-detection & inclusion of auxiliary "native" libs
         if not extdir.endswith(os.path.sep):
@@ -120,6 +142,112 @@ class CMakeBuild(build_ext):
         )
 
 
+class CMakeBuildScripts(build_scripts):
+    def copy_scripts(self):
+        self.mkpath(self.build_dir)
+        outfiles = []
+        updated_files = []
+        for script in self.scripts:
+            adjust = False
+            script = convert_path(script)
+            outfile = os.path.join(self.build_dir, os.path.basename(script))
+            outfiles.append(outfile)
+
+            templist = os.listdir(context['TEMP'])
+            for fname in templist:
+                if fname.startswith(script):
+                    script = os.path.join(context['TEMP'], fname)
+
+            if not self.force and not newer(script, outfile):
+                log.debug("not copying %s (up-to-date)", script)
+                continue
+
+            # Always open the file, but ignore failures in dry-run mode --
+            # that way, we'll get accurate feedback if we can read the
+            # script.
+            try:
+                f = open(script, "rb")
+            except OSError:
+                if not self.dry_run:
+                    raise
+                f = None
+            else:
+                try:
+                    encoding, lines = tokenize.detect_encoding(f.readline)
+                    f.seek(0)
+                    first_line = f.readline()
+                    if not first_line:
+                        self.warn("%s is an empty file (skipping)" % script)
+                        continue
+
+                    match = first_line_re.match(first_line)
+                    if match:
+                        adjust = True
+                        post_interp = match.group(1) or b''
+                except SyntaxError:
+                    adjust = False
+
+            if adjust:
+                log.info("copying and adjusting %s -> %s", script,
+                         self.build_dir)
+                updated_files.append(outfile)
+                if not self.dry_run:
+                    if not sysconfig.python_build:
+                        executable = self.executable
+                    else:
+                        executable = os.path.join(
+                            sysconfig.get_config_var("BINDIR"),
+                            "python%s%s" % (sysconfig.get_config_var("VERSION"),
+                                            sysconfig.get_config_var("EXE")))
+                    executable = os.fsencode(executable)
+                    shebang = b"#!" + executable + post_interp + b"\n"
+                    # Python parser starts to read a script using UTF-8 until
+                    # it gets a #coding:xxx cookie. The shebang has to be the
+                    # first line of a file, the #coding:xxx cookie cannot be
+                    # written before. So the shebang has to be decodable from
+                    # UTF-8.
+                    try:
+                        shebang.decode('utf-8')
+                    except UnicodeDecodeError:
+                        raise ValueError(
+                            "The shebang ({!r}) is not decodable "
+                            "from utf-8".format(shebang))
+                    # If the script is encoded to a custom encoding (use a
+                    # #coding:xxx cookie), the shebang has to be decodable from
+                    # the script encoding too.
+                    try:
+                        shebang.decode(encoding)
+                    except UnicodeDecodeError:
+                        raise ValueError(
+                            "The shebang ({!r}) is not decodable "
+                            "from the script encoding ({})"
+                                .format(shebang, encoding))
+                    with open(outfile, "wb") as outf:
+                        outf.write(shebang)
+                        outf.writelines(f.readlines())
+                if f:
+                    f.close()
+            else:
+                if f:
+                    f.close()
+                updated_files.append(outfile)
+                self.copy_file(script, outfile)
+
+        if os.name == 'posix':
+            for file in outfiles:
+                if self.dry_run:
+                    log.info("changing mode of %s", file)
+                else:
+                    oldmode = os.stat(file)[ST_MODE] & 0o7777
+                    newmode = (oldmode | 0o555) & 0o7777
+                    if newmode != oldmode:
+                        log.info("changing mode of %s from %o to %o",
+                                 file, oldmode, newmode)
+                        os.chmod(file, newmode)
+        # XXX should we modify self.outfiles?
+        return outfiles, updated_files
+
+
 # The information here can also be placed in setup.cfg - better separation of
 # logic and declaration, and simpler if you include description/version in a file.
 setup(
@@ -127,10 +255,14 @@ setup(
     version="0.2.0",
     author="Runze Chen",
     author_email="chenrz925@icloud.com",
-    description="A test project using pybind11 and CMake",
-    long_description="",
-    ext_modules=[CMakeExtension("geyser")],
-    cmdclass={"build_ext": CMakeBuild},
+    description="Compose and execute python objects",
+    long_description=read("README.md"),
+    long_description_content_type='text/markdown',
+    ext_modules=[CMakeExtension("geyser", '.')],
+    cmdclass={
+        "build_ext": CMakeBuildExt,
+        "build_scripts": CMakeBuildScripts
+    },
     zip_safe=False,
     extras_require={"test": ["pytest"]},
     classifiers=[
@@ -152,4 +284,6 @@ setup(
             'geyser=geyser:Geyser.entry',
         ],
     },
+    scripts=['gush'],
+    # package_data={'geyser': ['gush']},
 )

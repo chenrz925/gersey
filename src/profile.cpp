@@ -4,6 +4,7 @@
 
 #include "profile.h"
 #include "rapidjson/filereadstream.h"
+#include "pybind11/eval.h"
 #include <cstdio>
 #include <fstream>
 
@@ -81,19 +82,18 @@ geyser::YAMLProfile::YAMLProfile(const std::string &filename) {
 
 py::dict geyser::YAMLProfile::dict() {
     py::dict root;
-    auto eval = py::module_::import("builtins").attr("eval").cast<py::function>();
     for (auto it : *this->dom)
-        root[it.first.as<std::string>().c_str()] = this->map_value(it.second, eval);
+        root[it.first.as<std::string>().c_str()] = this->map_value(it.second);
     return root;
 }
 
-py::object geyser::YAMLProfile::map_value(const yaml::Node &node, py::function &eval) {
+py::object geyser::YAMLProfile::map_value(const yaml::Node &node) {
     switch (node.Type()) {
         case yaml::NodeType::Null:
             return py::none();
         case yaml::NodeType::Scalar: {
             try {
-                return eval(node.Scalar().c_str());
+                return py::eval(node.Scalar().c_str());
             } catch (const py::error_already_set &e) {
                 return py::str(node.Scalar());
             }
@@ -101,13 +101,13 @@ py::object geyser::YAMLProfile::map_value(const yaml::Node &node, py::function &
         case yaml::NodeType::Map: {
             py::dict pyvalue;
             for (auto it : node)
-                pyvalue[it.first.as<std::string>().c_str()] = this->map_value(it.second, eval);
+                pyvalue[it.first.as<std::string>().c_str()] = this->map_value(it.second);
             return pyvalue;
         }
         case yaml::NodeType::Sequence: {
             py::list pyvalue;
             for (auto it : node)
-                pyvalue.append(this->map_value(it, eval));
+                pyvalue.append(this->map_value(it));
             return pyvalue;
         }
         case yaml::NodeType::Undefined:

@@ -30,6 +30,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
+      - name: Update submodule
+        run: |
+          git submodule init
+          git submodule update
       
       - name: Checkout tag ${{ github.event.inputs.tag }}
         if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag != 'vx.x.x' }}
@@ -55,7 +60,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      
+
+      - name: Update submodule
+        run: |
+          git submodule init
+          git submodule update
+
       - name: Checkout tag ${{ github.event.inputs.tag }}
         if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag != 'vx.x.x' }}
         run: |

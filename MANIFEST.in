@@ -1,0 +1,18 @@
+recursive-include fmt *
+recursive-include pybind11 *
+recursive-include rapidjson *
+recursive-include spdlog *
+recursive-include yaml-cpp *
+recursive-include src *
+recursive-include include *
+recursive-exclude fmt .*
+recursive-exclude pybind11 .*
+recursive-exclude rapidjson .*
+recursive-exclude spdlog .*
+recursive-exclude yaml-cpp .*
+recursive-exclude include .*
+include setup.py
+include README.md
+include MANIFEST.in
+include LICENSE
+include CMakeLists.txt

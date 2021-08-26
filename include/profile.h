@@ -51,10 +51,9 @@ namespace geyser {
 
         std::shared_ptr<yaml::Node> dom;
 
-        py::object map_value(const yaml::Node &node, py::function &eval);
-    public:
-        ~YAMLProfile() = default;
+        py::object map_value(const yaml::Node &node);
 
+    public:
         py::dict dict() override;
     };
 }
