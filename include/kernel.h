@@ -2,8 +2,8 @@
 // Created by waterch on 2021/7/29.
 //
 
-#ifndef GEYSER_CORE_H
-#define GEYSER_CORE_H
+#ifndef GEYSER_KERNEL_H
+#define GEYSER_KERNEL_H
 
 #include <memory>
 #include <map>
@@ -12,18 +12,16 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/operators.h>
 
-#include "schedule.h"
+#include "logger.h"
 
 namespace py = pybind11;
 
 namespace geyser {
-    class Core {
+    class Kernel {
     private:
-        std::unique_ptr<py::object> logger;
-        std::map<const std::string, py::type> classes;
-        std::map<const std::string, py::object> context;
-
-        void register_class_debug(std::string name, py::object clazz);
+        static std::map<std::string, py::type> classes;
+        std::map<std::string, py::object> context;
+        Logger &logger = Logger::get("geyser.Kernel");
 
         std::string extract_module(const std::string &reference);
 
@@ -32,26 +30,18 @@ namespace geyser {
         std::string mirror_key(const std::string &key, py::dict &profile) const;
 
     public:
-        Core();
-
-        int concurrency();
-
         void register_class(std::string name, py::object clazz);
 
         py::type access(const std::string &reference);
 
         py::object compose(const std::string &name, py::dict profile);
 
-        std::string compiler() const;
-
-        void execute(py::dict profile);
-
         int class_count() const;
 
         int object_count() const;
 
-        py::list references() const;
+        std::vector<std::string> references() const;
     };
 }
 
-#endif //GEYSER_CORE_H
+#endif //GEYSER_KERNEL_H

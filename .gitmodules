@@ -18,3 +18,15 @@
 	path = yaml-cpp
 	url = https://github.com/jbeder/yaml-cpp.git
 	branch = master
+[submodule "toml"]
+	path = toml
+	url = https://github.com/marzer/tomlplusplus.git
+	branch = master
+[submodule "argh"]
+	path = argh
+	url = https://github.com/adishavit/argh.git
+	branch = master
+[submodule "taskflow"]
+	path = taskflow
+	url = https://github.com/taskflow/taskflow.git
+	branch = master

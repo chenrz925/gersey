@@ -72,10 +72,10 @@ const std::string &geyser::Logger::name() {
 
 std::string geyser::Logger::make_message(const py::args &args, const py::kwargs &kwargs) {
     std::vector<std::string> texts;
-    for (auto &it : args) {
+    for (auto it : args) {
         texts.push_back(std::move(py::str(it).cast<std::string>()));
     }
-    for (auto &it : kwargs) {
+    for (auto it : kwargs) {
         texts.push_back(
                 std::move(fmt::format(
                         "{}={}",

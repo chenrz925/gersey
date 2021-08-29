@@ -4,17 +4,45 @@
 
 #include "geyser.h"
 #include "fmt/format.h"
+#include "taskflow/taskflow.hpp"
+
+bool geyser::Geyser::python_mode = false;
+py::module_ geyser::Geyser::sys;
 
 void geyser::Geyser::init() {
+    sys = py::module_::import("sys");
+
     Logger::init();
+    Profile::init();
 }
 
 void geyser::Geyser::bind(py::class_<Geyser> &&clazz) {
-    clazz.def_static("entry", &Geyser::entry);
+    clazz.def_static("entry", py::overload_cast<>(&Geyser::entry));
 }
 
 int geyser::Geyser::entry() {
-    auto &logger = geyser::Logger::get("geyser.Geyser");
+    Geyser::python_mode = true;
+    Geyser::entry(0, nullptr, nullptr);
+    return 0;
+}
+
+
+int geyser::Geyser::entry(int argc, const char **argv, const char **envp) {
+    auto logger = geyser::Logger::get("geyser.Geyser");
+    print_runtime_info(logger);
+    auto cmdl = Geyser::build_parser(argc, argv);
+    auto profile_paths = Geyser::get_profile_paths(cmdl);
+    for (const auto& path : profile_paths) {
+        geyser::Kernel kernel;
+        auto profile = Profile::parse(path);
+        tf::Taskflow taskflow;
+
+    }
+
+    return 0;
+}
+
+void geyser::Geyser::print_runtime_info(geyser::Logger &logger) {
     auto platform = py::module_::import("platform");
     logger.info(fmt::format("geyser {}", GEYSER_MACRO_STRINGIFY(GEYSER_VERSION_INFO)));
     logger.info(fmt::format(
@@ -26,7 +54,6 @@ int geyser::Geyser::entry() {
             GEYSER_MACRO_STRINGIFY(GEYSER_COMPILER_VERSION),
             __DATE__, __TIME__
     ));
-//    auto platform_system = platform.attr("python_version")().cast<py::str>().cast<std::string>();
     logger.info(fmt::format(
             "python {} {} ",
             py::str(platform.attr("python_version")()).cast<std::string>(),
@@ -34,5 +61,36 @@ int geyser::Geyser::entry() {
     ));
     logger.info(platform.attr("version")().cast<py::str>().cast<std::string>());
 
-    return 0;
+}
+
+argh::parser geyser::Geyser::build_parser(int argc, const char **argv) {
+    argh::parser parser;
+    define_parser(parser);
+    if (python_mode) {
+        auto pyargv = sys.attr("argv").cast<py::list>();
+        typedef const char *cstring;
+        auto vargv = new cstring[py::len(pyargv)];
+        for (auto idx = 0; idx < py::len(pyargv); ++idx)
+            vargv[idx] = pyargv[idx].cast<std::string>().c_str();
+        parser.parse(py::len(pyargv), argv);
+    } else {
+        parser.parse(argc, argv);
+    }
+    return parser;
+}
+
+void geyser::Geyser::define_parser(argh::parser &parser) {
+
+}
+
+std::vector<std::string> geyser::Geyser::get_profile_paths(argh::parser &parser) {
+    std::vector<std::string> profile_paths;
+    auto begin_idx = 0;
+    if (Geyser::python_mode)
+        begin_idx = 2;
+    else
+        begin_idx = 1;
+    for (auto idx = begin_idx; idx < profile_paths.size(); ++idx)
+        profile_paths.push_back(parser.pos_args()[idx]);
+    return profile_paths;
 }

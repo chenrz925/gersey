@@ -68,7 +68,7 @@ def runtime_info(ctx):
     import platform
 
     ctx.logger.info(f'Geyser v{Geyser.version()}')
-    ctx.logger.info(f'Geyser Core build {Geyser.core_build()}')
+    ctx.logger.info(f'Geyser Kernel build {Geyser.core_build()}')
     ctx.logger.info(f'Python build {platform.python_compiler()} {platform.python_build()[1]}')
     ctx.logger.info(f'Operating System {platform.platform()}')
     return {
