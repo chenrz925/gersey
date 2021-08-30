@@ -5,6 +5,7 @@
 #include "geyser.h"
 #include "fmt/format.h"
 #include "taskflow/taskflow.hpp"
+#include <filesystem>
 
 bool geyser::Geyser::python_mode = false;
 py::module_ geyser::Geyser::sys;
@@ -32,11 +33,17 @@ int geyser::Geyser::entry(int argc, const char **argv, const char **envp) {
     print_runtime_info(logger);
     auto cmdl = Geyser::build_parser(argc, argv);
     auto profile_paths = Geyser::get_profile_paths(cmdl);
-    for (const auto& path : profile_paths) {
+    for (const auto &path : profile_paths) {
+        logger.info(fmt::format("Execute profile {}", path));
         geyser::Kernel kernel;
-        auto profile = Profile::parse(path);
-        tf::Taskflow taskflow;
-
+        if (std::filesystem::exists(path)) {
+            auto profile = Profile::parse(path);
+            if (profile.contains("__compose__"))
+                kernel.compose_all(profile["__compose__"]);
+            else
+                throw py::value_error(fmt::format("Composable objects are undefined"));
+        } else
+            logger.error(fmt::format("Profile {} does NOT exists", path));
     }
 
     return 0;
@@ -90,7 +97,11 @@ std::vector<std::string> geyser::Geyser::get_profile_paths(argh::parser &parser)
         begin_idx = 2;
     else
         begin_idx = 1;
-    for (auto idx = begin_idx; idx < profile_paths.size(); ++idx)
+    for (auto idx = begin_idx; idx < parser.pos_args().size(); ++idx)
         profile_paths.push_back(parser.pos_args()[idx]);
     return profile_paths;
+}
+
+auto geyser::Geyser::composable(const std::string &name, bool auto_compose) {
+    return
 }

@@ -99,7 +99,11 @@ py::object geyser::YAMLProfile::map_value(const yaml::Node &node) {
             return py::none();
         case yaml::NodeType::Scalar: {
             try {
-                return py::eval(node.Scalar().c_str());
+                auto pyeval = py::eval(node.Scalar().c_str());
+                if (py::isinstance<py::float_>(pyeval) || py::isinstance<py::int_>(pyeval) || py::isinstance<py::bool_>(pyeval))
+                    return pyeval;
+                else
+                    return py::str(node.Scalar());
             } catch (const py::error_already_set &e) {
                 return py::str(node.Scalar());
             }

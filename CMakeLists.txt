@@ -43,7 +43,7 @@ set(
         GEYSER_COMMON_SOURCES
         src/cli.cpp src/geyser.cpp
         src/logger.cpp src/profile.cpp
-        src/kernel.cpp
+        src/kernel.cpp src/bucket.cpp
 )
 set(
         GEYSER_SOURCES

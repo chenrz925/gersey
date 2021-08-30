@@ -9,5 +9,6 @@ PYBIND11_MODULE(geyser, m) {
     geyser::Geyser::bind(py::class_<geyser::Geyser>(m, "Geyser"));
     geyser::Logger::bind(py::class_<geyser::Logger>(m, "Logger"));
     geyser::Profile::bind(py::class_<geyser::Profile>(m, "Profile"));
+    geyser::ComposeWrapper::bind(py::class_<geyser::ComposeWrapper>(m, "ComposeWrapper"));
     geyser::Geyser::init();
 }

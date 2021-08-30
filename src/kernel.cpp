@@ -1,5 +1,8 @@
 #include "kernel.h"
-#include <pybind11/pybind11.h>
+#include "taskflow/taskflow.hpp"
+#include "pybind11/pybind11.h"
+#include <thread>
+
 
 std::map<std::string, py::type> geyser::Kernel::classes;
 
@@ -21,8 +24,15 @@ void geyser::Kernel::register_class(std::string name, py::object clazz) {
 py::type geyser::Kernel::access(const std::string &reference) {
     auto module = extract_module(reference);
     if (classes.find(reference) == classes.end())
-        py::module_::import(module.c_str());
-    return classes.at(reference);
+        try {
+            py::module_::import(module.c_str());
+        } catch (py::error_already_set &e) {
+            logger.error(e.value().cast<py::str>().cast<std::string>());
+        }
+    if (classes.find(reference) != classes.end())
+        return classes.at(reference);
+    else
+        throw py::import_error(fmt::format("Class {} is NOT found", reference));
 }
 
 py::object geyser::Kernel::compose(const std::string &name, py::dict profile) {
@@ -51,13 +61,14 @@ py::object geyser::Kernel::compose(const std::string &name, py::dict profile) {
     return context.at(name);
 }
 
-void geyser::Kernel::fill_kwargs(py::dict &profile, py::kwargs &kwargs, const std::string &key, pybind11::handle &value) {
+void
+geyser::Kernel::fill_kwargs(py::dict &profile, py::kwargs &kwargs, const std::string &key, pybind11::handle &value) {
     std::string mirrored_key = mirror_key(key, profile);
     if (pybind11::isinstance<py::str>(value) && value.cast<py::str>().cast<std::string>() == "__compose__") {
         if (context.find(key) != context.end()) {
             kwargs[py::str(mirrored_key.c_str())] = context.at(key);
         } else {
-            kwargs[py::str(mirrored_key.c_str())] = compose(key, profile);
+            throw py::import_error(fmt::format("Composable attribute \"{}\" is undefined", key));
         }
     } else {
         kwargs[py::str(mirrored_key.c_str())] = value;
@@ -98,5 +109,39 @@ std::vector<std::string> geyser::Kernel::references() const {
         references.push_back(key);
     std::sort(references.begin(), references.end());
     return references;
+}
+
+void geyser::Kernel::compose_all(py::dict profile) {
+    tf::Taskflow flow;
+    tf::Executor executor(std::thread::hardware_concurrency());
+    std::map<std::string, std::shared_ptr<tf::Task>> tasks;
+    std::map<std::string, std::vector<std::string>> task_dependencies;
+    for (auto[key, value] : profile) {
+        auto name = key.cast<py::str>().cast<std::string>();
+        task_dependencies.insert({name, this->get_dependencies(value.cast<py::dict>())});
+        tasks[name] = std::make_shared<tf::Task>(flow.emplace([&]() {
+            this->logger.debug(fmt::format("Compose {}", name));
+            this->context[name] = this->compose(name, profile);
+        }).name(name));
+    }
+    for (auto &[name, dependencies] : task_dependencies) {
+        for (auto it : dependencies)
+            tasks[it]->precede(*tasks[name]);
+    }
+    logger.debug(fmt::format("Compose in this flow: \n{}", flow.dump()));
+    executor.run(flow).wait();
+}
+
+std::vector<std::string> geyser::Kernel::get_dependencies(py::dict profile) {
+    std::vector<std::string> dependencies;
+    if (profile.contains("__compose__")) {
+        for (auto it : profile["__compose__"])
+            dependencies.push_back(it.cast<py::str>().cast<std::string>());
+    }
+    for (auto[akey, avalue] : profile.cast<py::dict>()) {
+        if (py::isinstance<py::str>(avalue) && avalue.cast<py::str>().cast<std::string>() == "__compose__")
+            dependencies.push_back(akey.cast<py::str>().cast<std::string>());
+    }
+    return dependencies;
 }
 

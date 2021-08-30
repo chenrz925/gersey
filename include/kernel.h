@@ -36,6 +36,10 @@ namespace geyser {
 
         py::object compose(const std::string &name, py::dict profile);
 
+        void compose_all(py::dict profile);
+
+        std::vector<std::string> get_dependencies(py::dict profile);
+
         int class_count() const;
 
         int object_count() const;

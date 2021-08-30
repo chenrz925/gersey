@@ -13,6 +13,7 @@
 #include "profile.h"
 #include "kernel.h"
 #include "argh.h"
+#include "bucket.h"
 
 namespace py = pybind11;
 
@@ -30,6 +31,7 @@ namespace geyser {
         static void define_parser(argh::parser &parser);
 
         static std::vector<std::string> get_profile_paths(argh::parser &parser);
+
     public:
         static void init();
 
@@ -38,6 +40,8 @@ namespace geyser {
         static int entry();
 
         static int entry(int argc, const char *argv[], const char *envp[]);
+
+        static auto composable(const std::string &name, bool auto_compose);
 
     };
 }
