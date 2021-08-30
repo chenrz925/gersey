@@ -21,7 +21,7 @@ namespace geyser {
     private:
         static std::map<std::string, py::type> classes;
         std::map<std::string, py::object> context;
-        Logger &logger = Logger::get("geyser.Kernel");
+        static Logger &logger;
 
         std::string extract_module(const std::string &reference);
 
@@ -30,7 +30,7 @@ namespace geyser {
         std::string mirror_key(const std::string &key, py::dict &profile) const;
 
     public:
-        void register_class(std::string name, py::object clazz);
+        static void register_class(std::string name, py::object clazz);
 
         py::type access(const std::string &reference);
 

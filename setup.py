@@ -5,7 +5,7 @@ import re
 import subprocess
 import sys
 
-from setuptools import setup, Extension
+from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext
 from distutils.command.build_scripts import build_scripts
 from stat import ST_MODE
@@ -251,18 +251,23 @@ class CMakeBuildScripts(build_scripts):
 # The information here can also be placed in setup.cfg - better separation of
 # logic and declaration, and simpler if you include description/version in a file.
 setup(
-    name="geyser",
+    name="geyserpy",
     version="0.2.0",
     author="Runze Chen",
     author_email="chenrz925@icloud.com",
     description="Compose and execute python objects",
     long_description=read("README.md"),
     long_description_content_type='text/markdown',
-    ext_modules=[CMakeExtension("geyser", '.')],
+    ext_modules=[CMakeExtension("geyserpy", '.')],
     cmdclass={
         "build_ext": CMakeBuildExt,
         "build_scripts": CMakeBuildScripts
     },
+    packages=find_packages(
+        where='src',
+        include=['geyserpy']
+    ),
+    package_dir={"": "src"},
     zip_safe=False,
     extras_require={"test": ["pytest"]},
     classifiers=[
@@ -281,9 +286,9 @@ setup(
     ],
     entry_points={  # Optional
         'console_scripts': [
-            'geyser=geyser:Geyser.entry',
+            'geyserpy=geyserpy:Geyser.entry',
         ],
     },
     scripts=['gush'],
-    # package_data={'geyser': ['gush']},
+    # package_data={'geyserpy': ['gush']},
 )

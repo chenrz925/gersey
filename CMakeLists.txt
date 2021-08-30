@@ -10,21 +10,21 @@ set(YAML_BUILD_SHARED_LIBS OFF)
 set(TF_BUILD_TESTS OFF)
 
 function(target_compiler_info target)
-    target_compile_definitions(${target} PRIVATE GEYSER_VERSION_INFO=${GEYSER_VERSION_INFO})
-    target_compile_definitions(${target} PRIVATE GEYSER_SYSTEM_NAME=${CMAKE_SYSTEM_NAME})
-    target_compile_definitions(${target} PRIVATE GEYSER_SYSTEM_VERSION=${CMAKE_SYSTEM_VERSION})
-    target_compile_definitions(${target} PRIVATE GEYSER_SYSTEM_PROCESSOR=${CMAKE_SYSTEM_PROCESSOR})
-    target_compile_definitions(${target} PRIVATE GEYSER_COMPILER_NAME=${CMAKE_CXX_COMPILER_ID})
-    target_compile_definitions(${target} PRIVATE GEYSER_COMPILER_VERSION=${CMAKE_CXX_COMPILER_VERSION})
+  target_compile_definitions(${target} PRIVATE GEYSER_VERSION_INFO=${GEYSER_VERSION_INFO})
+  target_compile_definitions(${target} PRIVATE GEYSER_SYSTEM_NAME=${CMAKE_SYSTEM_NAME})
+  target_compile_definitions(${target} PRIVATE GEYSER_SYSTEM_VERSION=${CMAKE_SYSTEM_VERSION})
+  target_compile_definitions(${target} PRIVATE GEYSER_SYSTEM_PROCESSOR=${CMAKE_SYSTEM_PROCESSOR})
+  target_compile_definitions(${target} PRIVATE GEYSER_COMPILER_NAME=${CMAKE_CXX_COMPILER_ID})
+  target_compile_definitions(${target} PRIVATE GEYSER_COMPILER_VERSION=${CMAKE_CXX_COMPILER_VERSION})
 endfunction()
 
 function(target_link_libraries_common target)
-    target_link_libraries(${target} PRIVATE fmt::fmt)
-    target_link_libraries(${target} PRIVATE spdlog)
-    target_link_libraries(${target} PRIVATE yaml-cpp)
-    target_link_libraries(${target} PRIVATE tomlplusplus::tomlplusplus)
-    target_link_libraries(${target} PRIVATE argh)
-    target_link_libraries(${target} PRIVATE Taskflow)
+  target_link_libraries(${target} PRIVATE fmt::fmt)
+  target_link_libraries(${target} PRIVATE spdlog)
+  target_link_libraries(${target} PRIVATE yaml-cpp)
+  target_link_libraries(${target} PRIVATE tomlplusplus::tomlplusplus)
+  target_link_libraries(${target} PRIVATE argh)
+  target_link_libraries(${target} PRIVATE Taskflow)
 endfunction()
 
 add_subdirectory(pybind11)
@@ -40,18 +40,18 @@ find_package(RapidJSON)
 find_package(argh PATHS argh)
 include_directories(include ${RapidJSON_INCLUDE_DIRS})
 set(
-        GEYSER_COMMON_SOURCES
-        src/cli.cpp src/geyser.cpp
-        src/logger.cpp src/profile.cpp
-        src/kernel.cpp src/bucket.cpp
+  GEYSER_COMMON_SOURCES
+  src/geyser.cpp
+  src/logger.cpp src/profile.cpp
+  src/kernel.cpp
 )
 set(
-        GEYSER_SOURCES
-        ${GEYSER_COMMON_SOURCES} src/module.cpp
+  GEYSER_SOURCES
+  ${GEYSER_COMMON_SOURCES} src/module.cpp
 )
 set(
-        GUSH_SOURCES
-        ${GEYSER_COMMON_SOURCES} src/main.cpp
+  GUSH_SOURCES
+  ${GEYSER_COMMON_SOURCES} src/main.cpp
 )
 pybind11_add_module(geyser ${GEYSER_SOURCES})
 target_compiler_info(geyser)

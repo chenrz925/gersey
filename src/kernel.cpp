@@ -6,6 +6,8 @@
 
 std::map<std::string, py::type> geyser::Kernel::classes;
 
+geyser::Logger &geyser::Kernel::logger = geyser::Logger::get("geyserpy.Kernel");
+
 void geyser::Kernel::register_class(std::string name, py::object clazz) {
     if (py::isinstance<py::type>(clazz)) {
         if (name == "")

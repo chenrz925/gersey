@@ -15,7 +15,7 @@ PYBIND11_EMBEDDED_MODULE(geyser, m) {
 
 int main(int argc, const char *argv[], const char *envp[]) {
     py::scoped_interpreter guard{};
-    py::module_::import("geyser");
+    py::module_::import("geyserpy");
 
     return geyser::Geyser::entry(argc, argv, envp);
 }

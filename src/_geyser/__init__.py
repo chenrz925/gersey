@@ -107,7 +107,7 @@ class Geyser:
             fill_args, fill_kwargs = [], {}
 
             if isinstance(args_slot, list) and len(args_slot) != len(in_args):
-                raise ValueError(f'{len(args_slot)} argument(s) are/is needed, input {len(in_args)} argument(s).')
+                raise ValueError(f'{len(args_slot)} argument(s) are/is needed, input {len(in_args)} argument(s)')
             else:
                 fill_args.extend(in_args)
 
@@ -116,7 +116,7 @@ class Geyser:
                     lambda param: param.name,
                     missing
                 ))
-                raise ValueError(f'Argument(s) named {", ".join(missing_names)} is/are missing.')
+                raise ValueError(f'Argument(s) named {", ".join(missing_names)} is/are missing')
             if len(undefined) > 0:
                 fill_kwargs.update(filter(
                     lambda it: it[0] not in undefined,

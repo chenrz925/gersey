@@ -9,11 +9,11 @@
 #define GEYSER_MACRO_STRINGIFY(x) GEYSER_STRINGIFY(x)
 
 #include "pybind11/pybind11.h"
+#include "pybind11/functional.h"
 #include "logger.h"
 #include "profile.h"
 #include "kernel.h"
 #include "argh.h"
-#include "bucket.h"
 
 namespace py = pybind11;
 
@@ -25,6 +25,8 @@ namespace geyser {
         static bool python_mode;
 
         static py::module_ sys;
+
+        static py::type Bucket;
 
         static argh::parser build_parser(int argc, const char *argv[]);
 
@@ -41,8 +43,21 @@ namespace geyser {
 
         static int entry(int argc, const char *argv[], const char *envp[]);
 
-        static auto composable(const std::string &name, bool auto_compose);
+        static std::function<py::object(py::object)> composable(const std::string &name, bool auto_compose);
 
+        static void composable(py::object clazz, const std::string &name);
+
+        static std::function<py::object(py::object)> composable(bool auto_compose);
+
+        static void composable(py::object clazz);
+
+        static std::function<py::object(py::object)> composable();
+
+        static std::function<py::object(py::object)> executable();
+
+        static std::function<py::object(py::object)> executable(const std::string &name);
+
+        static void executable(py::object func, const std::string &name);
     };
 }
 
