@@ -10,12 +10,8 @@
 using namespace py::literals;
 
 bool geyser::Geyser::python_mode = false;
-py::module_ geyser::Geyser::sys;
-py::type geyser::Geyser::Bucket = py::module_::import("geyserpy.bucket").attr("Bucket").cast<py::type>();
 
 void geyser::Geyser::init() {
-    sys = py::module_::import("sys");
-
     Logger::init();
     Profile::init();
 }
@@ -40,7 +36,7 @@ int geyser::Geyser::entry() {
 
 
 int geyser::Geyser::entry(int argc, const char **argv, const char **envp) {
-    auto logger = geyser::Logger::get("geyserpy.Geyser");
+    auto logger = geyser::Logger::get("geyser.Geyser");
     print_runtime_info(logger);
     auto cmdl = Geyser::build_parser(argc, argv);
     auto profile_paths = Geyser::get_profile_paths(cmdl);
@@ -62,7 +58,7 @@ int geyser::Geyser::entry(int argc, const char **argv, const char **envp) {
 
 void geyser::Geyser::print_runtime_info(geyser::Logger &logger) {
     auto platform = py::module_::import("platform");
-    logger.info(fmt::format("geyserpy {}", GEYSER_MACRO_STRINGIFY(GEYSER_VERSION_INFO)));
+    logger.info(fmt::format("geyser {}", GEYSER_MACRO_STRINGIFY(GEYSER_VERSION_INFO)));
     logger.info(fmt::format(
             "{} {} {} {} {} {} {}",
             GEYSER_MACRO_STRINGIFY(GEYSER_SYSTEM_NAME),
@@ -81,7 +77,9 @@ void geyser::Geyser::print_runtime_info(geyser::Logger &logger) {
 
 }
 
+
 argh::parser geyser::Geyser::build_parser(int argc, const char **argv) {
+    auto sys = py::module_::import("sys");
     argh::parser parser;
     define_parser(parser);
     if (python_mode) {
@@ -90,7 +88,7 @@ argh::parser geyser::Geyser::build_parser(int argc, const char **argv) {
         auto vargv = new cstring[py::len(pyargv)];
         for (auto idx = 0; idx < py::len(pyargv); ++idx)
             vargv[idx] = pyargv[idx].cast<std::string>().c_str();
-        parser.parse(py::len(pyargv), argv);
+        parser.parse(py::len(pyargv), vargv);
     } else {
         parser.parse(argc, argv);
     }
@@ -114,10 +112,13 @@ std::vector<std::string> geyser::Geyser::get_profile_paths(argh::parser &parser)
 }
 
 std::function<py::object(py::object)> geyser::Geyser::composable(const std::string &name, bool auto_compose = true) {
+    py::object module = py::module_::import("geyserpy.bucket");
     return [&](py::object clz) {
-        auto bucket = Geyser::Bucket.attr("create")(
+        auto bucket = module.attr("Bucket").attr("create")(
                 "clazz"_a = clz, "name"_a = name, "auto_compose"_a = auto_compose,
-                "safe_compose"_a = false
+                "safe_compose"_a = false, "get_logger"_a = py::cpp_function([](const std::string &name) {
+                    return Logger::get(name);
+                })
         );
         Kernel::register_class(name, bucket);
         return clz;
@@ -125,11 +126,14 @@ std::function<py::object(py::object)> geyser::Geyser::composable(const std::stri
 }
 
 std::function<py::object(py::object)> geyser::Geyser::composable(bool auto_compose = true) {
+    py::object module = py::module_::import("geyserpy.bucket");
     return [&](py::object clz) {
         auto name = clz.attr("__name__").cast<py::str>().cast<std::string>();
-        auto bucket = Geyser::Bucket.attr("create")(
+        auto bucket = module.attr("Bucket").attr("create")(
                 "clazz"_a = clz, "name"_a = name, "auto_compose"_a = auto_compose,
-                "safe_compose"_a = false
+                "safe_compose"_a = false, "get_logger"_a = py::cpp_function([](const std::string &name) {
+                    return Logger::get(name);
+                })
         );
         Kernel::register_class(name, bucket);
         return clz;
@@ -141,9 +145,12 @@ std::function<py::object(py::object)> geyser::Geyser::composable() {
 }
 
 void geyser::Geyser::composable(py::object clazz, const std::string &name) {
-    auto bucket = Geyser::Bucket.attr("create")(
+    py::object module = py::module_::import("geyserpy.bucket");
+    auto bucket = module.attr("Bucket").attr("create")(
             "clazz"_a = clazz, "name"_a = name, "auto_compose"_a = false,
-            "safe_compose"_a = true
+            "safe_compose"_a = true, "get_logger"_a = py::cpp_function([](const std::string &name) {
+                return Logger::get(name);
+            })
     );
     Kernel::register_class(name, bucket);
 }
@@ -153,10 +160,13 @@ void geyser::Geyser::composable(py::object clazz) {
 }
 
 std::function<py::object(py::object)> geyser::Geyser::executable(const std::string &name) {
+    py::object module = py::module_::import("geyserpy.bucket");
     return [&](py::object func) {
-        auto bucket = Geyser::Bucket.attr("create")(
+        auto bucket = module.attr("Bucket").attr("create")(
                 "clazz"_a = func, "name"_a = name, "auto_compose"_a = false,
-                "safe_compose"_a = false
+                "safe_compose"_a = false, "get_logger"_a = py::cpp_function([](const std::string &name) {
+                    return Logger::get(name);
+                })
         );
         Kernel::register_class(name, bucket);
         return func;
@@ -164,23 +174,29 @@ std::function<py::object(py::object)> geyser::Geyser::executable(const std::stri
 }
 
 void geyser::Geyser::executable(py::object func, const std::string &name) {
-    auto bucket = Geyser::Bucket.attr("create")(
+    py::object module = py::module_::import("geyserpy.bucket");
+    auto bucket = module.attr("Bucket").attr("create")(
             "clazz"_a = func, "name"_a = name, "auto_compose"_a = false,
-            "safe_compose"_a = false
+            "safe_compose"_a = false, "get_logger"_a = py::cpp_function([](const std::string &name) {
+                return Logger::get(name);
+            })
     );
     Kernel::register_class(name, bucket);
 }
 
 std::function<py::object(py::object)> geyser::Geyser::executable() {
+    py::object module = py::module_::import("geyserpy.bucket");
     return [&](py::object func) {
         auto words = func.attr("__name__").attr("split")("_").cast<py::list>();
         py::list capwords;
         for (auto it : words)
             capwords.append(it.attr("capitalize")());
         auto name = ""_s.attr("join")(capwords);
-        auto bucket = Geyser::Bucket.attr("create")(
+        auto bucket = module.attr("Bucket").attr("create")(
                 "clazz"_a = func, "name"_a = name, "auto_compose"_a = false,
-                "safe_compose"_a = false
+                "safe_compose"_a = false, "get_logger"_a = py::cpp_function([](const std::string &name) {
+                    return Logger::get(name);
+                })
         );
         return func;
     };

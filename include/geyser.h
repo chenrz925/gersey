@@ -24,10 +24,6 @@ namespace geyser {
 
         static bool python_mode;
 
-        static py::module_ sys;
-
-        static py::type Bucket;
-
         static argh::parser build_parser(int argc, const char *argv[]);
 
         static void define_parser(argh::parser &parser);

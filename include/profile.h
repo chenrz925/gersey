@@ -30,6 +30,8 @@ namespace geyser {
         static py::dict parse(const std::string &filename);
 
         virtual py::dict dict() = 0;
+
+        virtual ~Profile() = default;
     };
 
     class JSONProfile : protected Profile {

@@ -1,13 +1,9 @@
 from inspect import signature, Parameter
 from typing import Text
 
-from geyser import Logger
-
 
 def replace_safe_init(init):
     def wrapper(self, **kwargs):
-        self.__logger__ = Logger.get(f'{self.__class__.__module__}.{self.__class__.__name__}')
-
         in_args = kwargs.pop('__args__') if '__args__' in kwargs else []
         params = signature(init).parameters
         args_slot = None
@@ -61,8 +57,6 @@ def replace_safe_init(init):
 
 def replace_auto_init(init):
     def wrapper(self, **kwargs):
-        self.__logger__ = Logger.get(f'{self.__class__.__module__}.{self.__class__.__name__}')
-
         for key, item in kwargs.items():
             setattr(self, key, item)
 
@@ -71,7 +65,7 @@ def replace_auto_init(init):
 
 class Bucket:
     __raw__ = None
-    __logger__ = Logger.get(f'geyser.Bucket')
+    __logger__ = None
 
     @property
     def logger(self):
@@ -104,7 +98,7 @@ class Bucket:
         return cls.__raw__
 
     @classmethod
-    def create(cls, clazz: type, name: Text, auto_compose: bool, safe_compose: bool):
+    def create(cls, clazz: type, name: Text, auto_compose: bool, safe_compose: bool, get_logger):
         if isinstance(clazz, type):
             if safe_compose:
                 init = replace_safe_init(clazz.__init__)
@@ -115,12 +109,14 @@ class Bucket:
             return type(clazz.__name__ if name is not None else name, (clazz, Bucket), {
                 "__raw__": clazz,
                 "__module__": clazz.__module__,
-                "__init__": init
+                "__init__": init,
+                "__logger__": get_logger(f"{clazz.__module__}.{name}")
             })
         else:
             return type(clazz.__name__, (Bucket,), {
                 "__raw__": clazz,
                 "__module__": clazz.__module__,
                 "__init__": replace_auto_init(None),
-                "__call__": clazz
+                "__call__": clazz,
+                "__logger__": get_logger(f"{clazz.__module__}.{name}")
             })

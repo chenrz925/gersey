@@ -251,14 +251,14 @@ class CMakeBuildScripts(build_scripts):
 # The information here can also be placed in setup.cfg - better separation of
 # logic and declaration, and simpler if you include description/version in a file.
 setup(
-    name="geyserpy",
+    name="geyser",
     version="0.2.0",
     author="Runze Chen",
     author_email="chenrz925@icloud.com",
     description="Compose and execute python objects",
     long_description=read("README.md"),
     long_description_content_type='text/markdown',
-    ext_modules=[CMakeExtension("geyserpy", '.')],
+    ext_modules=[CMakeExtension("geyser", '.')],
     cmdclass={
         "build_ext": CMakeBuildExt,
         "build_scripts": CMakeBuildScripts
@@ -286,9 +286,8 @@ setup(
     ],
     entry_points={  # Optional
         'console_scripts': [
-            'geyserpy=geyserpy:Geyser.entry',
+            'geyser=geyser:Geyser.entry',
         ],
     },
     scripts=['gush'],
-    # package_data={'geyserpy': ['gush']},
 )

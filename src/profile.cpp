@@ -26,8 +26,7 @@ std::shared_ptr<geyser::Profile> geyser::Profile::get(const std::string &filenam
             return std::shared_ptr<Profile>(dynamic_cast<Profile *>(new YAMLProfile(filename)));
         } else if (suffix == ".toml" || suffix == ".tml") {
             return std::shared_ptr<Profile>(dynamic_cast<Profile *>(new TOMLProfile(filename)));
-        }
-        else {
+        } else {
             throw py::value_error(fmt::format("Unsupported suffix {}", suffix));
         }
     } else
@@ -100,7 +99,8 @@ py::object geyser::YAMLProfile::map_value(const yaml::Node &node) {
         case yaml::NodeType::Scalar: {
             try {
                 auto pyeval = py::eval(node.Scalar().c_str());
-                if (py::isinstance<py::float_>(pyeval) || py::isinstance<py::int_>(pyeval) || py::isinstance<py::bool_>(pyeval))
+                if (py::isinstance<py::float_>(pyeval) || py::isinstance<py::int_>(pyeval) ||
+                    py::isinstance<py::bool_>(pyeval))
                     return pyeval;
                 else
                     return py::str(node.Scalar());
@@ -181,5 +181,5 @@ py::object geyser::TOMLProfile::map_value(const toml::node &value) {
         for (auto it = table_value->begin(); it != table_value->end(); ++it)
             pyvalue[it->first.c_str()] = this->map_value(it->second);
         return pyvalue;
-    }
+    } else throw py::value_error("Unsupported node");
 }
