@@ -36,9 +36,7 @@ add_subdirectory(toml)
 add_subdirectory(argh)
 add_subdirectory(taskflow)
 
-find_package(RapidJSON)
-find_package(argh PATHS argh)
-include_directories(include ${RapidJSON_INCLUDE_DIRS})
+include_directories(include rapidjson/include)
 set(
   GEYSER_COMMON_SOURCES
   src/geyser.cpp

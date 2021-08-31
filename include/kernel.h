@@ -45,6 +45,8 @@ namespace geyser {
         int object_count() const;
 
         std::vector<std::string> references() const;
+
+        void execute_all(py::list profile);
     };
 }
 

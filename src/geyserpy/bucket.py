@@ -113,7 +113,7 @@ class Bucket:
                 "__logger__": get_logger(f"{clazz.__module__}.{name}")
             })
         else:
-            return type(clazz.__name__, (Bucket,), {
+            return type(clazz.__name__, (Bucket,) , {
                 "__raw__": clazz,
                 "__module__": clazz.__module__,
                 "__init__": replace_auto_init(None),

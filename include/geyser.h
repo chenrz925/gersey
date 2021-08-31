@@ -30,6 +30,8 @@ namespace geyser {
 
         static std::vector<std::string> get_profile_paths(argh::parser &parser);
 
+        static void profile_entry(const std::string &path, Logger &logger);
+
     public:
         static void init();
 

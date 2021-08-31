@@ -147,3 +147,41 @@ std::vector<std::string> geyser::Kernel::get_dependencies(py::dict profile) {
     return dependencies;
 }
 
+void geyser::Kernel::execute_all(py::list profile) {
+    tf::Taskflow flow;
+    tf::Executor executor(std::thread::hardware_concurrency());
+    std::map<std::string, std::shared_ptr<tf::Task>> tasks;
+    std::map<std::string, std::vector<std::string>> task_dependencies;
+    for (auto value : profile) {
+        auto name = value["__name__"].cast<std::string>();
+        task_dependencies[name] = std::vector<std::string>();
+        if (value.contains("__require__")) {
+            for (auto it : value["__require__"])
+                task_dependencies[name].push_back(it.cast<py::str>().cast<std::string>());
+        }
+        auto executable = Kernel::context.at(name);
+        tasks[name] = std::make_shared<tf::Task>(flow.emplace([&]() {
+            if (hasattr(executable.get_type().cast<py::type>(), "__call__")) {
+                py::object proxy = executable();
+                if (!proxy.is(py::none())) {
+                    if (py::isinstance<py::dict>(proxy)) {
+                        auto proxy_dict = proxy.cast<py::dict>();
+                        for (auto item : proxy_dict) {
+                            executable.attr("__dict__").cast<py::dict>()[item.first] = item.second;
+                        }
+                    } else {
+                        executable.attr("__dict__").cast<py::dict>()["__return__"] = proxy;
+                    }
+                }
+            } else
+                Kernel::logger.error(fmt::format("Object {} is NOT a executable", name));
+        }));
+    }
+    for (auto &[name, dependencies] : task_dependencies) {
+        for (auto it : dependencies)
+            tasks[it]->precede(*tasks[name]);
+    }
+
+    logger.debug(fmt::format("Execute in this flow: \n{}", flow.dump()));
+    executor.run(flow).wait();
+}

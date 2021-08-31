@@ -34,25 +34,37 @@ int geyser::Geyser::entry() {
     return 0;
 }
 
+void geyser::Geyser::profile_entry(const std::string &path, geyser::Logger &logger) {
+    logger.info(fmt::format("Execute profile {}", path));
+    geyser::Kernel kernel;
+    if (std::filesystem::exists(path)) {
+        auto profile = Profile::parse(path);
+        if (profile.contains("__compose__"))
+            kernel.compose_all(profile["__compose__"]);
+        else
+            throw py::value_error(fmt::format("Composable objects are undefined"));
+        if (profile.contains("__execute__"))
+            kernel.execute_all(profile["__execute__"]);
+        else
+            throw py::value_error(fmt::format("Execution list is undefined"));
+    } else
+        logger.error(fmt::format("Profile {} does NOT exists", path));
+}
 
 int geyser::Geyser::entry(int argc, const char **argv, const char **envp) {
     auto logger = geyser::Logger::get("geyser.Geyser");
-    print_runtime_info(logger);
+    Geyser::print_runtime_info(logger);
     auto cmdl = Geyser::build_parser(argc, argv);
     auto profile_paths = Geyser::get_profile_paths(cmdl);
-    for (const auto &path : profile_paths) {
-        logger.info(fmt::format("Execute profile {}", path));
-        geyser::Kernel kernel;
-        if (std::filesystem::exists(path)) {
-            auto profile = Profile::parse(path);
-            if (profile.contains("__compose__"))
-                kernel.compose_all(profile["__compose__"]);
-            else
-                throw py::value_error(fmt::format("Composable objects are undefined"));
-        } else
-            logger.error(fmt::format("Profile {} does NOT exists", path));
-    }
-
+    for (const auto &path : profile_paths)
+        try {
+            Geyser::profile_entry(path, logger);
+        } catch (py::error_already_set &e) {
+            logger.critical(fmt::format(
+                    "Failed to launch profile {}, exception: \"{}\"",
+                    path, e.value().cast<py::str>().cast<std::string>()
+            ));
+        }
     return 0;
 }
 
