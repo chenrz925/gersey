@@ -252,7 +252,7 @@ class CMakeBuildScripts(build_scripts):
 # logic and declaration, and simpler if you include description/version in a file.
 setup(
     name="geyser",
-    version="0.2.0",
+    version="0.2.1",
     author="Runze Chen",
     author_email="chenrz925@icloud.com",
     description="Compose and execute python objects",
@@ -269,7 +269,8 @@ setup(
     ),
     package_dir={"": "src"},
     zip_safe=False,
-    extras_require={"test": ["pytest"]},
+    install_requires=['cmake'],
+    # extras_require={"test": ["pytest"]},
     classifiers=[
         # For a list of valid classifiers, see https://pypi.org/classifiers/
         'Development Status :: 2 - Pre-Alpha',
@@ -285,9 +286,9 @@ setup(
         'Environment :: Console',
     ],
     entry_points={  # Optional
-        'console_scripts': [
-            'geyser=geyser:Geyser.entry',
-        ],
+        # 'console_scripts': [
+        #     'geyser=geyser:Geyser.entry',
+        # ],
     },
-    scripts=['gush'],
+    scripts=['gush', 'geyser'],
 )

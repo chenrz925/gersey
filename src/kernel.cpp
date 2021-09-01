@@ -66,7 +66,18 @@ geyser::Kernel::fill_kwargs(py::dict &profile, py::kwargs &kwargs, const std::st
         if (context.find(key) != context.end()) {
             kwargs[py::str(mirrored_key.c_str())] = context.at(key);
         } else {
-            throw py::import_error(fmt::format("Composable attribute \"{}\" is undefined", key));
+            std::vector<std::string> ctxs;
+            for (auto [k, v] : context)
+                ctxs.push_back(k);
+            auto refs = Kernel::references();
+            std::sort(ctxs.begin(), ctxs.end());
+            throw py::import_error(
+                    fmt::format(
+                            "Composable attribute \"{}\" is undefined, context: [{}], references: [{}]",
+                            key, fmt::join(ctxs.begin(), ctxs.end(), ","),
+                            fmt::join(refs.begin(), refs.end(), ",")
+                    )
+            );
         }
     } else {
         kwargs[py::str(mirrored_key.c_str())] = value;
@@ -119,7 +130,8 @@ void geyser::Kernel::compose_all(py::dict profile) {
         task_dependencies.insert({name, this->get_dependencies(value.cast<py::dict>())});
         tasks[name] = std::make_shared<tf::Task>(flow.emplace([&]() {
             py::gil_scoped_acquire acquire;
-            this->logger.debug(fmt::format("Compose {}", name));
+            auto name = key.cast<py::str>().cast<std::string>();
+            this->logger.info(fmt::format("Compose {}", name));
             this->context[name] = this->compose(name, profile);
             py::gil_scoped_release release;
         }).name(name));

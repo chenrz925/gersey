@@ -4,6 +4,8 @@ recursive-include rapidjson *
 recursive-include spdlog *
 recursive-include yaml-cpp *
 recursive-include argh *
+recursive-include taskflow *
+recursive-include toml *
 recursive-include src *
 recursive-include include *
 recursive-exclude fmt .*
@@ -12,6 +14,8 @@ recursive-exclude rapidjson .*
 recursive-exclude spdlog .*
 recursive-exclude yaml-cpp .*
 recursive-exclude argh .*
+recursive-exclude taskflow .*
+recursive-exclude toml .*
 recursive-exclude src .*
 recursive-exclude include .*
 recursive-exclude cmake-build-debug *

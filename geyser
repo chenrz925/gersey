@@ -1,0 +1,10 @@
+#!/bin/sh
+
+gush() {
+    _python_prefix=$(python -c 'import sys; print(sys.prefix)')
+    _gush_exec=$_python_prefix/bin/gush
+    _python_lib=$_python_prefix/lib
+    LD_LIBRARY_PATH=$_python_lib:$LD_LIBRARY_PATH $_gush_exec $*
+}
+
+gush $*

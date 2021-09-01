@@ -48,6 +48,7 @@ void geyser::Geyser::bind(py::class_<Geyser> &&clazz) {
             py::arg("clazz")
     );
     clazz.def_static("executable", py::overload_cast<>(&Geyser::executable));
+    clazz.def_static("composable_module", &Geyser::composable_module);
 }
 
 int geyser::Geyser::entry() {
@@ -237,4 +238,21 @@ void geyser::Geyser::executable(py::object func) {
         capwords.append(it.attr("capitalize")());
     auto name = ""_s.attr("join")(capwords).cast<std::string>();
     return Geyser::executable(func, name);
+}
+
+void geyser::Geyser::composable_module(py::object module) {
+    py::list attrs = module.attr("__dir__")();
+    for (auto it : attrs) {
+        if (!(it.attr("startswith")("__") && it.attr("endswith")("__"))) {
+            try {
+                auto obj = py::getattr(module, it);
+                if (py::isinstance<py::type>(obj))
+                    Geyser::composable(obj);
+                else if (py::isinstance<py::function>(obj))
+                    Geyser::executable(obj);
+                else if (py::isinstance<py::module_>(obj))
+                    Geyser::composable_module(obj);
+            } catch (py::error_already_set &e) {} catch (std::exception &e) {}
+        }
+    }
 }

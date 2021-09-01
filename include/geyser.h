@@ -58,6 +58,8 @@ namespace geyser {
         static void executable(py::object func, const std::string &name);
 
         static void executable(py::object func);
+
+        static void composable_module(py::object module);
     };
 }
 
