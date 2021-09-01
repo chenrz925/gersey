@@ -56,6 +56,8 @@ namespace geyser {
         static std::function<py::object(py::object)> executable(const std::string &name);
 
         static void executable(py::object func, const std::string &name);
+
+        static void executable(py::object func);
     };
 }
 

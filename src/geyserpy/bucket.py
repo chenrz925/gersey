@@ -58,7 +58,7 @@ def replace_safe_init(init):
 def replace_auto_init(init):
     def wrapper(self, **kwargs):
         for key, item in kwargs.items():
-            setattr(self, key, item)
+            self.__dict__[key] = item
 
     return wrapper
 
@@ -73,7 +73,7 @@ class Bucket:
 
     def __init__(self, *args, **kwargs):
         for key, item in kwargs.items():
-            setattr(self, key, item)
+            self.__dict__[key] = item
 
     def __mod__(self, item) -> bool:
         if isinstance(item, (tuple, list)):
@@ -113,7 +113,7 @@ class Bucket:
                 "__logger__": get_logger(f"{clazz.__module__}.{name}")
             })
         else:
-            return type(clazz.__name__, (Bucket,) , {
+            return type(clazz.__name__, (Bucket,), {
                 "__raw__": clazz,
                 "__module__": clazz.__module__,
                 "__init__": replace_auto_init(None),

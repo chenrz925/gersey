@@ -18,13 +18,35 @@ void geyser::Geyser::init() {
 
 void geyser::Geyser::bind(py::class_<Geyser> &&clazz) {
     clazz.def_static("entry", py::overload_cast<>(&Geyser::entry));
-    clazz.def_static("composable", py::overload_cast<bool>(&Geyser::composable));
-    clazz.def_static("composable", py::overload_cast<py::object, const std::string &>(&Geyser::composable));
-    clazz.def_static("composable", py::overload_cast<const std::string &, bool>(&Geyser::composable));
-    clazz.def_static("composable", py::overload_cast<py::object>(&Geyser::composable));
+    clazz.def_static(
+            "composable", py::overload_cast<bool>(&Geyser::composable),
+            py::arg("auto_compose")
+    );
+    clazz.def_static(
+            "composable", py::overload_cast<py::object, const std::string &>(&Geyser::composable),
+            py::arg("clazz"), py::arg("name")
+    );
+    clazz.def_static(
+            "composable", py::overload_cast<const std::string &, bool>(&Geyser::composable),
+            py::arg("name"), py::arg("auto_compose")
+    );
+    clazz.def_static(
+            "composable", py::overload_cast<py::object>(&Geyser::composable),
+            py::arg("clazz")
+    );
     clazz.def_static("composable", py::overload_cast<>(&Geyser::composable));
-    clazz.def_static("executable", py::overload_cast<const std::string &>(&Geyser::executable));
-    clazz.def_static("executable", py::overload_cast<py::object, const std::string &>(&Geyser::executable));
+    clazz.def_static(
+            "executable", py::overload_cast<const std::string &>(&Geyser::executable),
+            py::arg("name")
+    );
+    clazz.def_static(
+            "executable", py::overload_cast<py::object, const std::string &>(&Geyser::executable),
+            py::arg("clazz"), py::arg("name")
+    );
+    clazz.def_static(
+            "executable", py::overload_cast<py::object>(&Geyser::executable),
+            py::arg("clazz")
+    );
     clazz.def_static("executable", py::overload_cast<>(&Geyser::executable));
 }
 
@@ -57,14 +79,7 @@ int geyser::Geyser::entry(int argc, const char **argv, const char **envp) {
     auto cmdl = Geyser::build_parser(argc, argv);
     auto profile_paths = Geyser::get_profile_paths(cmdl);
     for (const auto &path : profile_paths)
-        try {
-            Geyser::profile_entry(path, logger);
-        } catch (py::error_already_set &e) {
-            logger.critical(fmt::format(
-                    "Failed to launch profile {}, exception: \"{}\"",
-                    path, e.value().cast<py::str>().cast<std::string>()
-            ));
-        }
+        Geyser::profile_entry(path, logger);
     return 0;
 }
 
@@ -124,8 +139,8 @@ std::vector<std::string> geyser::Geyser::get_profile_paths(argh::parser &parser)
 }
 
 std::function<py::object(py::object)> geyser::Geyser::composable(const std::string &name, bool auto_compose = true) {
-    py::object module = py::module_::import("geyserpy.bucket");
     return [&](py::object clz) {
+        py::object module = py::module_::import("geyserpy.bucket");
         auto bucket = module.attr("Bucket").attr("create")(
                 "clazz"_a = clz, "name"_a = name, "auto_compose"_a = auto_compose,
                 "safe_compose"_a = false, "get_logger"_a = py::cpp_function([](const std::string &name) {
@@ -138,8 +153,8 @@ std::function<py::object(py::object)> geyser::Geyser::composable(const std::stri
 }
 
 std::function<py::object(py::object)> geyser::Geyser::composable(bool auto_compose = true) {
-    py::object module = py::module_::import("geyserpy.bucket");
     return [&](py::object clz) {
+        py::object module = py::module_::import("geyserpy.bucket");
         auto name = clz.attr("__name__").cast<py::str>().cast<std::string>();
         auto bucket = module.attr("Bucket").attr("create")(
                 "clazz"_a = clz, "name"_a = name, "auto_compose"_a = auto_compose,
@@ -172,8 +187,8 @@ void geyser::Geyser::composable(py::object clazz) {
 }
 
 std::function<py::object(py::object)> geyser::Geyser::executable(const std::string &name) {
-    py::object module = py::module_::import("geyserpy.bucket");
     return [&](py::object func) {
+        py::object module = py::module_::import("geyserpy.bucket");
         auto bucket = module.attr("Bucket").attr("create")(
                 "clazz"_a = func, "name"_a = name, "auto_compose"_a = false,
                 "safe_compose"_a = false, "get_logger"_a = py::cpp_function([](const std::string &name) {
@@ -197,19 +212,29 @@ void geyser::Geyser::executable(py::object func, const std::string &name) {
 }
 
 std::function<py::object(py::object)> geyser::Geyser::executable() {
-    py::object module = py::module_::import("geyserpy.bucket");
     return [&](py::object func) {
+        py::object module = py::module_::import("geyserpy.bucket");
         auto words = func.attr("__name__").attr("split")("_").cast<py::list>();
         py::list capwords;
         for (auto it : words)
             capwords.append(it.attr("capitalize")());
-        auto name = ""_s.attr("join")(capwords);
+        auto name = ""_s.attr("join")(capwords).cast<std::string>();
         auto bucket = module.attr("Bucket").attr("create")(
                 "clazz"_a = func, "name"_a = name, "auto_compose"_a = false,
                 "safe_compose"_a = false, "get_logger"_a = py::cpp_function([](const std::string &name) {
                     return Logger::get(name);
                 })
         );
+        Kernel::register_class(name, bucket);
         return func;
     };
+}
+
+void geyser::Geyser::executable(py::object func) {
+    auto words = func.attr("__name__").attr("split")("_").cast<py::list>();
+    py::list capwords;
+    for (auto it : words)
+        capwords.append(it.attr("capitalize")());
+    auto name = ""_s.attr("join")(capwords).cast<std::string>();
+    return Geyser::executable(func, name);
 }

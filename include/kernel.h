@@ -46,7 +46,7 @@ namespace geyser {
 
         std::vector<std::string> references() const;
 
-        void execute_all(py::list profile);
+        void execute_all(py::dict profile);
     };
 }
 

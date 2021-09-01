@@ -14,7 +14,7 @@ void geyser::Kernel::register_class(std::string name, py::object clazz) {
             name = clazz.attr("__name__").cast<std::string>();
         auto clazz_t = clazz.cast<py::type>();
         auto reference = fmt::format("{}.{}", py::str(clazz.attr("__module__")).cast<std::string>(), name);
-        logger.debug(reference);
+        logger.info(fmt::format("Register {}", reference));
         if (classes.find(reference) == classes.end())
             classes.insert({reference, clazz_t});
         else
@@ -26,11 +26,7 @@ void geyser::Kernel::register_class(std::string name, py::object clazz) {
 py::type geyser::Kernel::access(const std::string &reference) {
     auto module = extract_module(reference);
     if (classes.find(reference) == classes.end())
-        try {
-            py::module_::import(module.c_str());
-        } catch (py::error_already_set &e) {
-            logger.error(e.value().cast<py::str>().cast<std::string>());
-        }
+        py::module_::import(module.c_str());
     if (classes.find(reference) != classes.end())
         return classes.at(reference);
     else
@@ -122,8 +118,10 @@ void geyser::Kernel::compose_all(py::dict profile) {
         auto name = key.cast<py::str>().cast<std::string>();
         task_dependencies.insert({name, this->get_dependencies(value.cast<py::dict>())});
         tasks[name] = std::make_shared<tf::Task>(flow.emplace([&]() {
+            py::gil_scoped_acquire acquire;
             this->logger.debug(fmt::format("Compose {}", name));
             this->context[name] = this->compose(name, profile);
+            py::gil_scoped_release release;
         }).name(name));
     }
     for (auto &[name, dependencies] : task_dependencies) {
@@ -131,7 +129,9 @@ void geyser::Kernel::compose_all(py::dict profile) {
             tasks[it]->precede(*tasks[name]);
     }
     logger.debug(fmt::format("Compose in this flow: \n{}", flow.dump()));
+    py::gil_scoped_release release;
     executor.run(flow).wait();
+    py::gil_scoped_acquire acquire;
 }
 
 std::vector<std::string> geyser::Kernel::get_dependencies(py::dict profile) {
@@ -147,35 +147,39 @@ std::vector<std::string> geyser::Kernel::get_dependencies(py::dict profile) {
     return dependencies;
 }
 
-void geyser::Kernel::execute_all(py::list profile) {
+void geyser::Kernel::execute_all(py::dict profile) {
     tf::Taskflow flow;
     tf::Executor executor(std::thread::hardware_concurrency());
     std::map<std::string, std::shared_ptr<tf::Task>> tasks;
     std::map<std::string, std::vector<std::string>> task_dependencies;
-    for (auto value : profile) {
-        auto name = value["__name__"].cast<std::string>();
-        task_dependencies[name] = std::vector<std::string>();
-        if (value.contains("__require__")) {
-            for (auto it : value["__require__"])
-                task_dependencies[name].push_back(it.cast<py::str>().cast<std::string>());
-        }
-        auto executable = Kernel::context.at(name);
-        tasks[name] = std::make_shared<tf::Task>(flow.emplace([&]() {
-            if (hasattr(executable.get_type().cast<py::type>(), "__call__")) {
-                py::object proxy = executable();
-                if (!proxy.is(py::none())) {
-                    if (py::isinstance<py::dict>(proxy)) {
-                        auto proxy_dict = proxy.cast<py::dict>();
-                        for (auto item : proxy_dict) {
-                            executable.attr("__dict__").cast<py::dict>()[item.first] = item.second;
+    if (profile.contains("__action__")) {
+        for (auto value : profile["__action__"]) {
+            auto name = value["__name__"].cast<std::string>();
+            task_dependencies[name] = std::vector<std::string>();
+            if (value.contains("__require__")) {
+                for (auto it : value["__require__"])
+                    task_dependencies[name].push_back(it.cast<py::str>().cast<std::string>());
+            }
+            auto executable = Kernel::context.at(name);
+            tasks[name] = std::make_shared<tf::Task>(flow.emplace([&]() {
+                if (hasattr(executable.get_type().cast<py::type>(), "__call__")) {
+                    py::gil_scoped_acquire acquire;
+                    py::object proxy = executable();
+                    if (!proxy.is(py::none())) {
+                        if (py::isinstance<py::dict>(proxy)) {
+                            auto proxy_dict = proxy.cast<py::dict>();
+                            for (auto item : proxy_dict) {
+                                executable.attr("__dict__").cast<py::dict>()[item.first] = item.second;
+                            }
+                        } else {
+                            executable.attr("__dict__").cast<py::dict>()["__return__"] = proxy;
                         }
-                    } else {
-                        executable.attr("__dict__").cast<py::dict>()["__return__"] = proxy;
                     }
-                }
-            } else
-                Kernel::logger.error(fmt::format("Object {} is NOT a executable", name));
-        }));
+                    py::gil_scoped_release release;
+                } else
+                    Kernel::logger.error(fmt::format("Object {} is NOT a executable", name));
+            }));
+        }
     }
     for (auto &[name, dependencies] : task_dependencies) {
         for (auto it : dependencies)
@@ -183,5 +187,7 @@ void geyser::Kernel::execute_all(py::list profile) {
     }
 
     logger.debug(fmt::format("Execute in this flow: \n{}", flow.dump()));
+    py::gil_scoped_release release;
     executor.run(flow).wait();
+    py::gil_scoped_acquire acquire;
 }
