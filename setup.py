@@ -8,17 +8,9 @@ https://github.com/pypa/sampleproject
 # Always prefer setuptools over distutils
 import codecs
 import os
-import sys
-from glob import glob
+import pathlib
 
 from setuptools import setup, find_packages
-
-try:
-    from pybind11.setup_helpers import Pybind11Extension, build_ext
-except ModuleNotFoundError:
-    os.system(f'{sys.executable} -m pip install pybind11')
-    from pybind11.setup_helpers import Pybind11Extension, build_ext
-import pathlib
 
 
 def read(rel_path):
@@ -172,9 +164,7 @@ setup(
     #
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=[
-        'pybind11', 'ruamel.yaml', 'toml'
-    ],  # Optional
+    install_requires=[],  # Optional
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). Users will be able to install these using the "extras"
@@ -185,8 +175,8 @@ setup(
     # Similar to `install_requires` above, these must be valid existing
     # projects.
     extras_require={  # Optional
-        'dev': ['check-manifest'],
-        'test': ['coverage'],
+        # 'dev': ['check-manifest'],
+        # 'test': ['coverage'],
     },
 
     # If there are data files included in your packages that need to be
@@ -231,14 +221,14 @@ setup(
         'Source': 'https://github.com/chenrz925/geyser',
     },
 
-    ext_modules=[
-        Pybind11Extension(
-            name="_geyser",
-            sources=sorted(glob('src/geyser/*.cpp')),
-            include_dirs=sorted(glob('src/geyser/*.h')),
-            libraries=[],
-        ),
-    ],
-
-    cmdclass={"build_ext": build_ext},
+    # ext_modules=[
+    #     Pybind11Extension(
+    #         name="_geyser",
+    #         sources=sorted(glob('src/geyser/*.cpp')),
+    #         include_dirs=sorted(glob('src/geyser/*.h')),
+    #         libraries=[],
+    #     ),
+    # ],
+    #
+    # cmdclass={"build_ext": build_ext},
 )
