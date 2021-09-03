@@ -6,8 +6,8 @@ from pkgutil import get_data
 from typing import Mapping, Text, Any, Type
 
 from jsonschema import validate
+from taskflow.atom import Atom
 from taskflow.flow import Flow
-from taskflow.task import Task
 
 from .typedef import FunctorMeta, AtomMeta
 
@@ -50,8 +50,16 @@ class Context(object):
             import_module(self._parse_module(reference))
             return self.functors[reference]
 
-    def _build_atom(self, profile: Mapping[Text, Text]):
+    def _build_atom(self, profile: Mapping[Text, Text]) -> Atom:
         reference: Text = profile['reference']
+        name: Text = profile['name']
+        inject: Mapping[Text, Text] = profile['inject'] if 'inject' in profile else {}
+        rebind: Mapping[Text, Text] = profile['rebind'] if 'rebind' in profile else {}
+        revert_rebind: Mapping[Text, Text] = profile['revert_rebind'] if 'revert_rebind' in profile else {}
 
         meta = self._access_atom_class(reference)
-        # meta.
+        return meta.atom(
+            name=name, provides=meta.provides, requires=meta.requires,
+            rebind=rebind, inject=inject, revert_rebind=revert_rebind,
+            revert_requires=meta.revert_requires
+        )
