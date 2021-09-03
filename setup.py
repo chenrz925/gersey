@@ -194,6 +194,7 @@ setup(
     #
     # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
     data_files=[
+        ('schema', ['src/geyser/schema.json'])
         # ('geyser', ['src/geyser/core.pyi']),
     ],  # ('my_data', ['data/data_file'])],  # Optional
 

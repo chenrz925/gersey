@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "https://geyser.waterch.cn/schema",
+  "$defs": {
+    "reference": {
+      "type": "string",
+      "format": "([a-zA-Z_][a-zA-Z0-9_]*)(\\.([a-zA-Z_][a-zA-Z0-9_]*))*"
+    },
+    "name": {
+      "type": "string",
+      "format": "[a-z_][a-z0-9_]*"
+    }
+  },
+  "title": "Geyser Schema",
+  "type": "object",
+  "properties": {
+    "tasks": {
+      "title": "Tasks",
+      "type": "array",
+      "items": {
+        "title": "Task",
+        "oneOf": [
+          {
+            "type": "object",
+            "required": ["reference", "name"],
+            "properties": {
+              "reference": {
+                "$ref": "#/$defs/reference"
+              },
+              "name": {
+                "$ref": "#/$defs/name"
+              },
+              "inject": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "default": {}
+              },
+              "rebind": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "default": {}
+              },
+              "revert_rebind": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "default": {}
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
