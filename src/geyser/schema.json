@@ -9,10 +9,97 @@
     "name": {
       "type": "string",
       "format": "[a-z_][a-z0-9_]*"
+    },
+    "task": {
+      "type": "object",
+      "required": [
+        "reference",
+        "name",
+        "type"
+      ],
+      "properties": {
+        "reference": {
+          "$ref": "#/$defs/reference"
+        },
+        "name": {
+          "$ref": "#/$defs/name"
+        },
+        "inject": {
+          "type": "object",
+          "additionalProperties": true,
+          "default": {}
+        },
+        "rebind": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {}
+        },
+        "revert_rebind": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {}
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "task",
+            "functor",
+            "mapper",
+            "reducer"
+          ],
+          "default": "task"
+        }
+      }
+    },
+    "flow": {
+      "title": "Flow",
+      "type": "object",
+      "required": [
+        "name",
+        "type",
+        "include"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/name"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "linear",
+            "graph",
+            "unordered",
+            "targeted_graph"
+          ],
+          "default": "graph"
+        },
+        "include": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/flow"
+              },
+              {
+                "$ref": "#/$defs/name"
+              }
+            ]
+          }
+        }
+      }
     }
   },
   "title": "Geyser Schema",
   "type": "object",
+  "required": [
+    "tasks",
+    "flow",
+    "engine"
+  ],
   "properties": {
     "tasks": {
       "title": "Tasks",
@@ -21,38 +108,70 @@
         "title": "Task",
         "oneOf": [
           {
-            "type": "object",
-            "required": ["reference", "name"],
-            "properties": {
-              "reference": {
-                "$ref": "#/$defs/reference"
-              },
-              "name": {
-                "$ref": "#/$defs/name"
-              },
-              "inject": {
-                "type": "object",
-                "additionalProperties": true,
-                "default": {}
-              },
-              "rebind": {
-                "type": "object",
-                "additionalProperties": {
-                  "type": "string"
-                },
-                "default": {}
-              },
-              "revert_rebind": {
-                "type": "object",
-                "additionalProperties": {
-                  "type": "string"
-                },
-                "default": {}
-              }
-            }
+            "$ref": "#/$defs/task"
           }
         ]
       }
+    },
+    "flow": {
+      "$ref": "#/$defs/flow"
+    },
+    "engine": {
+      "type": "string",
+      "enum": [
+        "serial",
+        "parallel",
+        "workers",
+        "worker-based"
+      ]
+    },
+    "inject": {
+      "type": "object"
+    },
+    "backend": {
+      "type": "object",
+      "required": [
+        "connection"
+      ],
+      "properties": {
+        "connection": {
+          "type": "string",
+          "enum": [
+            "memory",
+            "dir",
+            "file",
+            "mysql",
+            "postgres",
+            "sqlite",
+            "zookeeper"
+          ]
+        }
+      }
     }
-  }
+  },
+  "if": {
+    "properties": {
+      "engine": {
+        "const": "parallel"
+      }
+    }
+  },
+  "then": {
+    "properties": {
+      "executor": {
+        "type": "string",
+        "enum": [
+          "process",
+          "processes",
+          "thread",
+          "threaded",
+          "threads",
+          "greenthread",
+          "greedthreaded",
+          "greenthreads"
+        ]
+      }
+    }
+  },
+  "else": {}
 }

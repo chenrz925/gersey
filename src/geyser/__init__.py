@@ -1,4 +1,8 @@
 __all__ = [
     '__version__',
+    'Geyser',
+    'Task'
 ]
-__version__ = '0.3.0'
+
+from .geyser import Geyser, __version__
+from taskflow.task import Task

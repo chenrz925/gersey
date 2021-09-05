@@ -56,7 +56,7 @@ setup(
     # For a discussion on single-sourcing the version across setup.py and the
     # project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version=get_version('src/geyser/__init__.py'),  # Required
+    version=get_version('src/geyser/geyser.py'),  # Required
 
     # This is a one-line description or tagline of what your project does. This
     # corresponds to the "Summary" metadata field:
@@ -166,8 +166,15 @@ setup(
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
         'taskflow>=4.6.1',
-        'greenlet'
+        'greenlet',
+        'ruamel.yaml>=0.17.16',
+        'toml>=0.10.2'
     ],  # Optional
+
+    tests_require=[
+        'pytest>=6.2.5',
+        'pytest-pythonpath>=0.7.3'
+    ],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). Users will be able to install these using the "extras"
@@ -178,25 +185,27 @@ setup(
     # Similar to `install_requires` above, these must be valid existing
     # projects.
     extras_require={  # Optional
-        # 'dev': ['check-manifest'],
-        # 'test': ['coverage'],
+        'hocon': ['pyhocon>=0.3.58'],
+        'proctitle': ['proctitle>=1.2.2'],
+        'all': ['pyhocon>=0.3.58', 'proctitle>=1.2.2']
     },
 
     # If there are data files included in your packages that need to be
     # installed, specify them here.
-    package_data={  # Optional
-        # 'sample': ['package_data.dat'],
-    },
+    include_package_data=True,
+    # package_data={  # Optional
+    #     'schema': ['src/geyser/schema.json'],
+    # },
 
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:
     # http://docs.python.org/distutils/setupscript.html#installing-additional-files
     #
     # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
-    data_files=[
-        ('schema', ['src/geyser/schema.json'])
-        # ('geyser', ['src/geyser/core.pyi']),
-    ],  # ('my_data', ['data/data_file'])],  # Optional
+    # data_files=[
+    #     ('schema', ['src/geyser/schema.json'])
+    #     # ('geyser', ['src/geyser/core.pyi']),
+    # ],  # ('my_data', ['data/data_file'])],  # Optional
 
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow

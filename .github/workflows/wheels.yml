@@ -94,4 +94,4 @@ jobs:
         with:
           user: __token__
           password: ${{ secrets.pypi_password }}
-          # To test: repository_url: https://test.pypi.org/legacy/
+          # To tests: repository_url: https://test.pypi.org/legacy/
