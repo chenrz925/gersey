@@ -7,6 +7,7 @@ import plistlib
 from ruamel import yaml
 import toml
 import argparse
+from os.path import abspath, exists, join as path_join, dirname
 
 try:
     import pyhocon
@@ -88,6 +89,14 @@ class Geyser(object):
     @classmethod
     def _load_profile(cls, path: Text) -> Mapping[Text, Any]:
         suffix = path.split('.')[-1].lower()
+        if exists(abspath(path)):
+            path = abspath(path)
+        else:
+            try:
+                import geyser_bucket
+                path = abspath(path_join(dirname(geyser_bucket.__file__), path))
+            except ModuleNotFoundError:
+                pass
         return getattr(cls, f'_load_profile_{suffix}', cls._load_profile_)(path)
 
     @classmethod
