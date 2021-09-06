@@ -1,13 +1,14 @@
-from collections import OrderedDict
-from inspect import isfunction
-from logging import getLogger as get_logger, Logger
-from typing import Callable, MutableMapping, Mapping, Text, Type, Any
+import argparse
 import json
 import plistlib
-from ruamel import yaml
-import toml
-import argparse
+from collections import OrderedDict
+from inspect import isfunction
+from logging import config as logging_config, getLogger as get_logger
 from os.path import abspath, exists, join as path_join, dirname
+from typing import Callable, MutableMapping, Mapping, Text, Type, Any, Sequence
+
+import toml
+from ruamel import yaml
 
 try:
     import pyhocon
@@ -23,7 +24,7 @@ from taskflow.patterns.unordered_flow import Flow as UnorderedFlow
 from .context import Context
 from .typedef import FunctorMeta, AtomMeta
 
-__version__ = '0.3.0'
+__version__ = '0.3.1'
 
 
 class Geyser(object):
@@ -36,14 +37,14 @@ class Geyser(object):
         ('targeted_graph', TargetedFlow),
     ))
 
-    _logger: Logger = get_logger(f"geyser.geyser.Geyser")
+    _logger = get_logger(f"geyser.geyser.Geyser")
 
     @classmethod
     def task(
             cls,
-            provides: Mapping[Text, Any] = (),
-            requires: Mapping[Text, Any] = (),
-            revert_requires: Mapping[Text, Any] = ()
+            provides: Sequence[Text] = (),
+            requires: Sequence[Text] = (),
+            revert_requires: Sequence[Text] = ()
     ) -> Callable[[Type[Atom]], Type[Atom]]:
         def wrapper(atom: Type[Atom]) -> Type[Atom]:
             reference = f'{atom.__module__}.{atom.__name__}'
@@ -63,9 +64,9 @@ class Geyser(object):
     @classmethod
     def functor(
             cls,
-            provides: Mapping[Text, Any] = (),
-            requires: Mapping[Text, Any] = (),
-            revert_requires: Mapping[Text, Any] = ()
+            provides: Sequence[Text] = (),
+            requires: Sequence[Text] = (),
+            revert_requires: Sequence[Text] = ()
     ) -> Callable[[Callable], Callable]:
         def wrapper(functor: Callable) -> Callable:
             reference = f'{functor.__module__}.{"".join(map(lambda it: it.capitalize(), functor.__name__.split("_")))}'
@@ -93,8 +94,8 @@ class Geyser(object):
             path = abspath(path)
         else:
             try:
-                import geyser_bucket
-                path = abspath(path_join(dirname(geyser_bucket.__file__), path))
+                import geyser_lava
+                path = abspath(path_join(dirname(geyser_lava.__file__), path))
             except ModuleNotFoundError:
                 pass
         return getattr(cls, f'_load_profile_{suffix}', cls._load_profile_)(path)
@@ -164,15 +165,58 @@ class Geyser(object):
             version=f'%(prog)s {__version__}'
         )
         parser.add_argument(
-            'profiles',
+            '-d', '--debug',
+            action='store_true',
+        )
+        parser.add_argument(
+            '-l', '--log',
+            nargs='+'
+        )
+        parser.add_argument(
+            'profile',
             nargs='+',
         )
         return parser
 
     @classmethod
+    def _setting_logging(cls, ns):
+        logging_config.dictConfig({
+            'version': 1,
+            'formatters': {
+                'colored': {
+                    '()': 'colorlog.ColoredFormatter',
+                    'format': "%(log_color)s(%(asctime)s)[%(levelname)s][%(process)d][%(thread)d][%(name)s]%(reset)s: "
+                              "%(message)s"
+                },
+                'plain': {
+                    '()': 'logging.Formatter',
+                    'format': "(%(asctime)s)[%(levelname)s][%(process)d][%(thread)d][%(name)s]: (message)s"
+                }
+            },
+            'handlers': {
+                'console': {
+                    'class': 'logging.StreamHandler',
+                    'formatter': 'colored',
+                    'level': 'DEBUG' if ns.debug else 'INFO'
+                },
+            }
+        })
+        logging_config.dictConfig({
+            'incremental': True,
+            'handlers': dict(map(lambda it: (f'file{it[0]}', {
+                'class': 'logging.handlers.TimedRotatingFileHandler',
+                'formatter': 'plain',
+                'level': 'DEBUG',
+                'when': 'D',
+                'filename': it[1]
+            }), enumerate(ns.log)))
+        })
+
+    @classmethod
     def entry(cls):
         ns = cls._build_parser().parse_args()
-        for profile in ns.profiles:
+        cls._setting_logging(ns)
+        for profile in ns.profile:
             context = cls._build_context(cls._load_profile(profile))
             context()
         return 0

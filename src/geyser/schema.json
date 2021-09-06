@@ -126,7 +126,8 @@
       ]
     },
     "inject": {
-      "type": "object"
+      "type": "object",
+      "default": {}
     },
     "backend": {
       "type": "object",

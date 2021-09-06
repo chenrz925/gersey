@@ -168,7 +168,10 @@ setup(
         'taskflow>=4.6.1',
         'greenlet',
         'ruamel.yaml>=0.17.16',
-        'toml>=0.10.2'
+        'toml>=0.10.2',
+        'colorlog>=6.4.1',
+        'pyhocon>=0.3.58',
+        'setproctitle>=1.2.2'
     ],  # Optional
 
     tests_require=[
@@ -185,9 +188,6 @@ setup(
     # Similar to `install_requires` above, these must be valid existing
     # projects.
     extras_require={  # Optional
-        'hocon': ['pyhocon>=0.3.58'],
-        'proctitle': ['proctitle>=1.2.2'],
-        'all': ['pyhocon>=0.3.58', 'proctitle>=1.2.2']
     },
 
     # If there are data files included in your packages that need to be

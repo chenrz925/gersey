@@ -2,16 +2,17 @@ from collections import OrderedDict
 from copy import copy
 from importlib import import_module
 from json import loads
+from logging import getLogger as get_logger
 from pkgutil import get_data
-from typing import Mapping, Text, Any, Type, Sequence, List, Optional
+from typing import Mapping, Text, Any, Type, Sequence, List, Optional, MutableMapping
 
 from jsonschema import validate
-from taskflow.atom import Atom
-from taskflow.task import FunctorTask, ReduceFunctorTask, MapFunctorTask
-from taskflow.flow import Flow
 from taskflow import engines
+from taskflow.atom import Atom
 from taskflow.engines.base import Engine
+from taskflow.flow import Flow
 from taskflow.persistence import backends
+from taskflow.task import FunctorTask, ReduceFunctorTask, MapFunctorTask
 
 from .typedef import FunctorMeta, AtomMeta
 
@@ -58,13 +59,14 @@ class Context(object):
             import_module(self._parse_module(reference))
             return self._functors[reference]
 
-    def _build_atom(self, profile: Mapping[Text, Text]) -> Atom:
+    def _build_atom(self, profile: MutableMapping[Text, Text]) -> Atom:
         reference: Text = profile['reference']
         name: Text = profile['name']
         inject: Mapping[Text, Text] = profile['inject'] if 'inject' in profile else {}
         rebind: Mapping[Text, Text] = profile['rebind'] if 'rebind' in profile else {}
         revert_rebind: Mapping[Text, Text] = profile['revert_rebind'] if 'revert_rebind' in profile else {}
 
+        inject['logger'] = get_logger(reference)
         meta = self._access_atom_class(reference)
         return meta.atom(
             name=name, provides=meta.provides, requires=meta.requires,
@@ -72,13 +74,14 @@ class Context(object):
             revert_requires=meta.revert_requires
         )
 
-    def _build_functor(self, profile: Mapping[Text, Text]) -> Atom:
+    def _build_functor(self, profile: MutableMapping[Text, Text]) -> Atom:
         reference: Text = profile['reference']
         name: Text = profile['name']
         inject: Mapping[Text, Text] = profile['inject'] if 'inject' in profile else {}
         rebind: Mapping[Text, Text] = profile['rebind'] if 'rebind' in profile else {}
         typename: Text = profile['type'] if 'type' in profile else "functor"
 
+        inject['logger'] = get_logger(reference)
         meta = self._access_functor(reference)
         if typename == 'mapper':
             return MapFunctorTask(
@@ -144,7 +147,7 @@ class Context(object):
                 self._root_flow,
                 engine=self._profile['engine'] if 'engine' in self._profile else 'serial'
             )
-        self._engine.storage.inject(self._profile['engine'] if 'engine' in self._profile else {})
+        self._engine.storage.inject(self._profile['inject'] if 'inject' in self._profile else {})
         self._engine.compile()
         self._engine.prepare()
         self._engine.validate()
