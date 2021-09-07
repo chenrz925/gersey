@@ -96,12 +96,16 @@ class Geyser(object):
         if exists(abspath(path)):
             path = abspath(path)
         else:
+            cls._logger.info(f'File {abspath(path)} does not exist')
             try:
                 import geyser_lava
-                path = abspath(path_join(dirname(geyser_lava.__file__), path))
+                path = abspath(path_join(dirname(geyser_lava.__file__), 'profile', path))
             except ModuleNotFoundError:
-                pass
-        return getattr(cls, f'_load_profile_{suffix}', cls._load_profile_)(path)
+                cls._logger.warning('Module geyser-lava has not been installed')
+        if exists(path):
+            return getattr(cls, f'_load_profile_{suffix}', cls._load_profile_)(path)
+        else:
+            raise FileNotFoundError(f'File {abspath(path)} does not exist')
 
     @classmethod
     def _load_profile_(cls, path: Text) -> Mapping[Text, Any]:

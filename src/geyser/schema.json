@@ -36,6 +36,13 @@
           },
           "default": {}
         },
+        "rename": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {}
+        },
         "revert_rebind": {
           "type": "object",
           "additionalProperties": {

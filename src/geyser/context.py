@@ -59,17 +59,24 @@ class Context(object):
             import_module(self._parse_module(reference))
             return self._functors[reference]
 
+    def _rename_provide(self, provide: Sequence[Text], rename: Mapping[Text, Text]) -> Sequence[Text]:
+        return list(map(
+            lambda it: rename[it] if it in rename else it,
+            provide
+        ))
+
     def _build_atom(self, profile: MutableMapping[Text, Text]) -> Atom:
         reference: Text = profile['reference']
         name: Text = profile['name']
-        inject: Mapping[Text, Text] = profile['inject'] if 'inject' in profile else {}
+        inject: MutableMapping[Text, Text] = profile['inject'] if 'inject' in profile else {}
         rebind: Mapping[Text, Text] = profile['rebind'] if 'rebind' in profile else {}
+        rename: Mapping[Text, Text] = profile['rename'] if 'rename' in profile else {}
         revert_rebind: Mapping[Text, Text] = profile['revert_rebind'] if 'revert_rebind' in profile else {}
 
         inject['logger'] = get_logger(reference)
         meta = self._access_atom_class(reference)
         return meta.atom(
-            name=name, provides=meta.provides, requires=meta.requires,
+            name=name, provides=self._rename_provide(meta.provides, rename), requires=meta.requires,
             rebind=rebind, inject=inject, revert_rebind=revert_rebind,
             revert_requires=meta.revert_requires
         )
@@ -79,23 +86,24 @@ class Context(object):
         name: Text = profile['name']
         inject: Mapping[Text, Text] = profile['inject'] if 'inject' in profile else {}
         rebind: Mapping[Text, Text] = profile['rebind'] if 'rebind' in profile else {}
+        rename: Mapping[Text, Text] = profile['rename'] if 'rename' in profile else {}
         typename: Text = profile['type'] if 'type' in profile else "functor"
 
         inject['logger'] = get_logger(reference)
         meta = self._access_functor(reference)
         if typename == 'mapper':
             return MapFunctorTask(
-                functor=meta.functor, name=name, provides=meta.provides,
+                functor=meta.functor, name=name, provides=self._rename_provide(meta.provides, rename),
                 requires=meta.requires, rebind=rebind, inject=inject
             )
         elif typename == 'reducer':
             return ReduceFunctorTask(
-                functor=meta.functor, name=name, provides=meta.provides,
+                functor=meta.functor, name=name, provides=self._rename_provide(meta.provides, rename),
                 requires=meta.requires, rebind=rebind, inject=inject
             )
         else:
             return FunctorTask(
-                execute=meta.functor, name=name, provides=meta.provides,
+                execute=meta.functor, name=name, provides=self._rename_provide(meta.provides, rename),
                 requires=meta.requires, rebind=rebind, inject=inject
             )
 
