@@ -5,6 +5,9 @@ from collections import OrderedDict
 from inspect import isfunction
 from logging import config as logging_config, getLogger as get_logger
 from os.path import abspath, exists, join as path_join, dirname
+from pathlib import Path
+from platform import python_version, python_compiler, python_build, platform, python_implementation
+from sys import path as sys_path
 from typing import Callable, MutableMapping, Mapping, Text, Type, Any, Sequence
 
 import toml
@@ -24,7 +27,7 @@ from taskflow.patterns.unordered_flow import Flow as UnorderedFlow
 from .context import Context
 from .typedef import FunctorMeta, AtomMeta
 
-__version__ = '0.3.1'
+__version__ = '0.3.2'
 
 
 class Geyser(object):
@@ -37,7 +40,7 @@ class Geyser(object):
         ('targeted_graph', TargetedFlow),
     ))
 
-    _logger = get_logger(f"geyser.geyser.Geyser")
+    _logger = None
 
     @classmethod
     def task(
@@ -117,7 +120,7 @@ class Geyser(object):
     @classmethod
     def _load_profile_yaml(cls, path: Text) -> Mapping[Text, Any]:
         with open(path, 'r') as fp:
-            return yaml.load(fp)
+            return yaml.load(fp, Loader=yaml.Loader)
 
     @classmethod
     def _load_profile_yml(cls, path: Text) -> Mapping[Text, Any]:
@@ -180,42 +183,60 @@ class Geyser(object):
 
     @classmethod
     def _setting_logging(cls, ns):
+        handlers = {
+            'console': {
+                'class': 'logging.StreamHandler',
+                'formatter': 'colored',
+                'level': 'DEBUG' if ns.debug else 'INFO',
+                'stream': 'ext://sys.stdout',
+            },
+        }
+        handlers.update(map(lambda it: (f'file{it[0]}', {
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'formatter': 'plain',
+            'level': 'DEBUG',
+            'when': 'D',
+            'filename': it[1]
+        }), enumerate(ns.log if ns.log else [])))
         logging_config.dictConfig({
             'version': 1,
             'formatters': {
                 'colored': {
                     '()': 'colorlog.ColoredFormatter',
-                    'format': "%(log_color)s(%(asctime)s)[%(levelname)s][%(process)d][%(thread)d][%(name)s]%(reset)s: "
-                              "%(message)s"
+                    'format': "%(log_color)s(%(asctime)+8s)[%(levelname)s][%(process)d][%(thread)d][%(name)s]%(reset)s:"
+                              " %(message)s",
                 },
                 'plain': {
                     '()': 'logging.Formatter',
-                    'format': "(%(asctime)s)[%(levelname)s][%(process)d][%(thread)d][%(name)s]: (message)s"
+                    'format': "(%(asctime)s)[%(levelname)+8s][%(process)d][%(thread)d][%(name)s]: (message)s"
                 }
             },
-            'handlers': {
-                'console': {
-                    'class': 'logging.StreamHandler',
-                    'formatter': 'colored',
-                    'level': 'DEBUG' if ns.debug else 'INFO'
-                },
+            'handlers': handlers,
+            'root': {
+                'level': 'NOTSET',
+                'handlers': list(handlers.keys())
             }
         })
-        logging_config.dictConfig({
-            'incremental': True,
-            'handlers': dict(map(lambda it: (f'file{it[0]}', {
-                'class': 'logging.handlers.TimedRotatingFileHandler',
-                'formatter': 'plain',
-                'level': 'DEBUG',
-                'when': 'D',
-                'filename': it[1]
-            }), enumerate(ns.log)))
-        })
+        cls._logger = get_logger(f'{cls.__module__}.{cls.__name__}')
+
+    @classmethod
+    def _setting_module_path(cls):
+        sys_path.append(abspath('.'))
+        path_file = Path.home() / '.geyser' / 'PYTHONPATH'
+        if path_file.exists():
+            with path_file.open('r') as fp:
+                for path in fp.readlines():
+                    sys_path.append(path.strip())
 
     @classmethod
     def entry(cls):
         ns = cls._build_parser().parse_args()
+        cls._setting_module_path()
         cls._setting_logging(ns)
+        cls._logger.info(f'Geyser {__version__}')
+        cls._logger.info(
+            f'Python ({python_implementation()}) {python_version()} {python_compiler()} {python_build()[1]}')
+        cls._logger.info(f'OS {platform()}')
         for profile in ns.profile:
             context = cls._build_context(cls._load_profile(profile))
             context()

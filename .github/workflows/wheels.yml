@@ -20,35 +20,35 @@ on:
 #       - published
 
 jobs:     
-  build_wheels:
-    name: Build wheels on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    continue-on-error: true
-    strategy:
-      matrix:
-        os: [ubuntu-20.04, windows-2019, macos-10.15]
-
-    steps:
-      - uses: actions/checkout@v2
-      
-      - name: Checkout tag ${{ github.event.inputs.tag }}
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag != 'vx.x.x' }}
-        run: |
-          git fetch origin tag ${{ github.event.inputs.tag }}
-          git rev-parse ${{ github.event.inputs.tag }}
-          git checkout -b ${{ github.event.inputs.tag }} ${{ github.event.inputs.tag }}
-  
-      - uses: actions/setup-python@v2
-        name: Install Python
-        with:
-          python-version: '3.8'
-
-      - name: Build wheels
-        uses: pypa/cibuildwheel@v2.1.1
-
-      - uses: actions/upload-artifact@v2
-        with:
-          path: ./wheelhouse/*.whl
+#  build_wheels:
+#    name: Build wheels on ${{ matrix.os }}
+#    runs-on: ${{ matrix.os }}
+#    continue-on-error: true
+#    strategy:
+#      matrix:
+#        os: [ubuntu-20.04, windows-2019, macos-10.15]
+#
+#    steps:
+#      - uses: actions/checkout@v2
+#
+#      - name: Checkout tag ${{ github.event.inputs.tag }}
+#        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag != 'vx.x.x' }}
+#        run: |
+#          git fetch origin tag ${{ github.event.inputs.tag }}
+#          git rev-parse ${{ github.event.inputs.tag }}
+#          git checkout -b ${{ github.event.inputs.tag }} ${{ github.event.inputs.tag }}
+#
+#      - uses: actions/setup-python@v2
+#        name: Install Python
+#        with:
+#          python-version: '3.8'
+#
+#      - name: Build wheels
+#        uses: pypa/cibuildwheel@v2.1.1
+#
+#      - uses: actions/upload-artifact@v2
+#        with:
+#          path: ./wheelhouse/*.whl
 
   build_sdist:
     name: Build source distribution
@@ -71,14 +71,15 @@ jobs:
       - name: Build sdist
         run: |
           python setup.py sdist
+          python setup.py bdist_wheel
 
       - uses: actions/upload-artifact@v2
         with:
-          path: dist/*.tar.gz
+          path: dist/*
 
   upload_pypi:
     environment: pypi
-    needs: [build_wheels, build_sdist]
+    needs: [build_sdist]
     runs-on: ubuntu-latest
     # upload to PyPI on every tag starting with 'v'
     # if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
