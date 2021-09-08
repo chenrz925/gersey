@@ -23,7 +23,7 @@ from taskflow.patterns.unordered_flow import Flow as UnorderedFlow
 from .context import Context
 from .typedef import FunctorMeta, AtomMeta
 
-__version__ = '0.3.4'
+__version__ = '0.3.5'
 
 
 class Geyser(object):
@@ -194,12 +194,12 @@ class Geyser(object):
             'formatters': {
                 'colored': {
                     '()': 'colorlog.ColoredFormatter',
-                    'format': "%(log_color)s(%(asctime)+8s)[%(levelname)s][%(process)d][%(thread)d][%(name)s]%(reset)s:"
+                    'format': "%(log_color)s(%(asctime)s)[%(levelname)s][%(process)d][%(thread)d][%(name)s]%(reset)s:"
                               " %(message)s",
                 },
                 'plain': {
                     '()': 'logging.Formatter',
-                    'format': "(%(asctime)s)[%(levelname)+8s][%(process)d][%(thread)d][%(name)s]: (message)s"
+                    'format': "(%(asctime)s)[%(levelname)s][%(process)d][%(thread)d][%(name)s]: %(message)s"
                 }
             },
             'handlers': handlers,
