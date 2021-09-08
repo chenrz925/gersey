@@ -8,6 +8,7 @@ from os import environ, system
 from os.path import abspath, exists, join as path_join, dirname
 from pathlib import Path
 from platform import python_version, python_compiler, python_build, platform, python_implementation
+import sys
 from sys import path as sys_path
 from typing import Callable, MutableMapping, Mapping, Text, Type, Any, Sequence
 
@@ -24,7 +25,7 @@ from taskflow.patterns.unordered_flow import Flow as UnorderedFlow
 from .context import Context
 from .typedef import FunctorMeta, AtomMeta
 
-__version__ = '0.4.0'
+__version__ = '0.4.1'
 
 
 class Geyser(object):
@@ -184,13 +185,19 @@ class Geyser(object):
     @classmethod
     def _setting_logging(cls, ns):
         handlers = {}
-        if not ns.quiet:
+        if not ns.quiet and ns.log:
             handlers['console'] = {
                 'class': 'logging.StreamHandler',
                 'formatter': 'colored',
                 'level': 'DEBUG' if ns.debug else 'INFO',
                 'stream': 'ext://sys.stdout',
             }
+            sys.stdin.close()
+            sys.stdin = open('/dev/null', 'r')
+            sys.stdout.close()
+            sys.stdout = open('/dev/null', 'r')
+            sys.stderr.close()
+            sys.stderr = open('/dev/null', 'w')
         handlers.update(map(lambda it: (f'file{it[0]}', {
             'class': 'logging.handlers.TimedRotatingFileHandler',
             'formatter': 'plain',
