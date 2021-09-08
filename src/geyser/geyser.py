@@ -4,6 +4,7 @@ import plistlib
 from collections import OrderedDict
 from inspect import isfunction
 from logging import config as logging_config, getLogger as get_logger
+from os import environ, system
 from os.path import abspath, exists, join as path_join, dirname
 from pathlib import Path
 from platform import python_version, python_compiler, python_build, platform, python_implementation
@@ -23,7 +24,7 @@ from taskflow.patterns.unordered_flow import Flow as UnorderedFlow
 from .context import Context
 from .typedef import FunctorMeta, AtomMeta
 
-__version__ = '0.3.5'
+__version__ = '0.4.0'
 
 
 class Geyser(object):
@@ -167,6 +168,14 @@ class Geyser(object):
             nargs='+'
         )
         parser.add_argument(
+            '-q', '--quiet',
+            action='store_true'
+        )
+        parser.add_argument(
+            '-e', '--edit',
+            action='store_true'
+        )
+        parser.add_argument(
             'profile',
             nargs='+',
         )
@@ -174,14 +183,14 @@ class Geyser(object):
 
     @classmethod
     def _setting_logging(cls, ns):
-        handlers = {
-            'console': {
+        handlers = {}
+        if not ns.quiet:
+            handlers['console'] = {
                 'class': 'logging.StreamHandler',
                 'formatter': 'colored',
                 'level': 'DEBUG' if ns.debug else 'INFO',
                 'stream': 'ext://sys.stdout',
-            },
-        }
+            }
         handlers.update(map(lambda it: (f'file{it[0]}', {
             'class': 'logging.handlers.TimedRotatingFileHandler',
             'formatter': 'plain',
@@ -220,6 +229,18 @@ class Geyser(object):
                     sys_path.append(path.strip())
 
     @classmethod
+    def _call_editor(cls, ns):
+        editor_file = Path.home() / '.geyser' / 'EDITOR'
+        if 'EDITOR' in environ:
+            editor = environ['EDITOR']
+        elif editor_file.exists():
+            editor = editor_file.open('r').readline().strip()
+        else:
+            editor = 'vi'
+        for profile in ns.profile:
+            system(f'{editor} {profile}')
+
+    @classmethod
     def entry(cls):
         ns = cls._build_parser().parse_args()
         cls._setting_module_path()
@@ -228,8 +249,11 @@ class Geyser(object):
         cls._logger.info(
             f'Python ({python_implementation()}) {python_version()} {python_compiler()} {python_build()[1]}')
         cls._logger.info(f'OS {platform()}')
-        for profile in ns.profile:
-            setproctitle(f'geyser {profile}')
-            context = cls._build_context(cls._load_profile(profile))
-            context()
+        if ns.edit:
+            cls._call_editor(ns)
+        else:
+            for profile in ns.profile:
+                setproctitle(f'geyser {profile}')
+                context = cls._build_context(cls._load_profile(profile))
+                context()
         return 0
