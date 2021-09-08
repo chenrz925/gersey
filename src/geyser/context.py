@@ -13,6 +13,7 @@ from taskflow.engines.base import Engine
 from taskflow.flow import Flow
 from taskflow.persistence import backends
 from taskflow.task import FunctorTask, ReduceFunctorTask, MapFunctorTask
+from ruamel.yaml import dump
 
 from .typedef import FunctorMeta, AtomMeta
 
@@ -38,6 +39,7 @@ class Context(object):
         self._atoms = OrderedDict()
         self._root_flow = None
         self._engine = None
+        self._logger = get_logger(f'{self.__class__.__module__}.{self.__class__.__name__}')
         self.inject_atoms(self._profile['tasks'] if 'tasks' in self._profile else [])
         self.inject_flow(self._profile['flow'] if 'flow' in self._profile else {})
         self.inject_engine()
@@ -157,8 +159,13 @@ class Context(object):
             )
         self._engine.storage.inject(self._profile['inject'] if 'inject' in self._profile else {})
         self._engine.compile()
+        self._logger.info(f'Finish compiling engine.')
+        self._logger.info(f'Engine compilation:\n{self._engine.compilation.execution_graph.pformat()}')
         self._engine.prepare()
+        self._logger.info('Finish preparing engine.')
         self._engine.validate()
+        self._logger.info('Finish validating engine.')
 
     def __call__(self, *args, **kwargs):
-        return self._engine.run()
+        ret = self._engine.run()
+        self._logger.info(f'Engine statistics:\n{dump(self._engine.statistics)}')
