@@ -10,14 +10,10 @@ from platform import python_version, python_compiler, python_build, platform, py
 from sys import path as sys_path
 from typing import Callable, MutableMapping, Mapping, Text, Type, Any, Sequence
 
+import pyhocon
 import toml
 from ruamel import yaml
-
-try:
-    import pyhocon
-except ModuleNotFoundError:
-    pyhocon = None
-
+from setproctitle import setproctitle
 from taskflow.atom import Atom
 from taskflow.flow import Flow
 from taskflow.patterns.graph_flow import Flow as GraphFLow, TargetedFlow
@@ -27,7 +23,7 @@ from taskflow.patterns.unordered_flow import Flow as UnorderedFlow
 from .context import Context
 from .typedef import FunctorMeta, AtomMeta
 
-__version__ = '0.3.2'
+__version__ = '0.3.3'
 
 
 class Geyser(object):
@@ -152,16 +148,7 @@ class Geyser(object):
         return context()
 
     @classmethod
-    def _set_proc_title(cls):
-        try:
-            from setproctitle import setproctitle
-            setproctitle('geyser')
-        except ModuleNotFoundError:
-            return
-
-    @classmethod
     def _build_parser(cls) -> argparse.ArgumentParser:
-        cls._set_proc_title()
         parser = argparse.ArgumentParser(
             'geyser',
             description='Inject and execute tasks.'
@@ -242,6 +229,7 @@ class Geyser(object):
             f'Python ({python_implementation()}) {python_version()} {python_compiler()} {python_build()[1]}')
         cls._logger.info(f'OS {platform()}')
         for profile in ns.profile:
+            setproctitle(f'geyser {profile}')
             context = cls._build_context(cls._load_profile(profile))
             context()
         return 0
