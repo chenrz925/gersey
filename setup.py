@@ -217,6 +217,7 @@ setup(
     entry_points={  # Optional
         'console_scripts': [
             'geyser=geyser:Geyser.entry',
+            'geyser-guard=geyser.guard:Guard.entry'
         ],
     },
 
