@@ -192,6 +192,7 @@ class Geyser(object):
                 'level': 'DEBUG' if ns.debug else 'INFO',
                 'stream': 'ext://sys.stdout',
             }
+        if ns.quiet:
             sys.stdin.close()
             sys.stdin = open('/dev/null', 'r')
             sys.stdout.close()
