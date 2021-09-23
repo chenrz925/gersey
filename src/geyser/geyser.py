@@ -25,7 +25,7 @@ from taskflow.patterns.unordered_flow import Flow as UnorderedFlow
 from .context import Context
 from .typedef import FunctorMeta, AtomMeta
 
-__version__ = '0.4.2'
+__version__ = '0.4.3'
 
 
 class Geyser(object):
@@ -185,14 +185,14 @@ class Geyser(object):
     @classmethod
     def _setting_logging(cls, ns):
         handlers = {}
-        if not ns.quiet and ns.log:
+        if not ns.quiet and not ns.log:
             handlers['console'] = {
                 'class': 'logging.StreamHandler',
                 'formatter': 'colored',
                 'level': 'DEBUG' if ns.debug else 'INFO',
                 'stream': 'ext://sys.stdout',
             }
-        if ns.quiet:
+        else:
             sys.stdin.close()
             sys.stdin = open('/dev/null', 'r')
             sys.stdout.close()
