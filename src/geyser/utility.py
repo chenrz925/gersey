@@ -31,6 +31,9 @@ def inject_logger(type_, *args, **kwargs):
     if 'logger' in kwargs:
         return type_(*args, **kwargs)
     elif 'logger' in sig.parameters or any(map(lambda it: it.kind == Parameter.VAR_KEYWORD, sig.parameters.values())):
-        return type_(*args, logger=get_logger(f'{type_.__module__}.{type_.__name__}'), **kwargs)
+        try:
+            return type_(*args, logger=get_logger(f'{type_.__module__}.{type_.__name__}'), **kwargs)
+        except TypeError:
+            return type_(*args, **kwargs)
     else:
         return type_(*args, **kwargs)
