@@ -171,7 +171,8 @@ setup(
         'toml>=0.10.2',
         'colorlog>=6.4.1',
         'pyhocon>=0.3.58',
-        'setproctitle>=1.2.2'
+        'setproctitle>=1.2.2',
+        'more_itertools>=8.8.0'
     ],  # Optional
 
     tests_require=[
@@ -192,10 +193,9 @@ setup(
 
     # If there are data files included in your packages that need to be
     # installed, specify them here.
-    include_package_data=True,
-    # package_data={  # Optional
-    #     'schema': ['src/geyser/schema.json'],
-    # },
+    package_data={  # Optional
+        'geyser': ['schema.json'],
+    },
 
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:

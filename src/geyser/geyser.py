@@ -1,16 +1,23 @@
 import argparse
 import json
 import plistlib
+import sys
 from collections import OrderedDict
 from inspect import isfunction
 from logging import config as logging_config, getLogger as get_logger
 from os import environ, system
-from os.path import abspath, exists, join as path_join, dirname
+from os.path import abspath
 from pathlib import Path
 from platform import python_version, python_compiler, python_build, platform, python_implementation
-import sys
 from sys import path as sys_path
 from typing import Callable, MutableMapping, Mapping, Text, Type, Any, Sequence
+
+from more_itertools import flatten
+
+if sys.version_info < (3, 10):
+    from importlib_metadata import entry_points
+else:
+    from importlib.metadata import entry_points
 
 import pyhocon
 import toml
@@ -25,7 +32,7 @@ from taskflow.patterns.unordered_flow import Flow as UnorderedFlow
 from .context import Context
 from .typedef import FunctorMeta, AtomMeta
 
-__version__ = '0.4.4'
+__version__ = '0.4.5'
 
 
 class Geyser(object):
@@ -89,21 +96,31 @@ class Geyser(object):
         return Context(profile, cls._atom_classes, cls._functors, cls._flow_classes)
 
     @classmethod
+    def _profile_search_paths(cls):
+        return [
+            Path('.').absolute(),
+            *tuple(flatten(map(
+                lambda it: it.profile_paths(),
+                filter(
+                    lambda it: hasattr(it, 'profile_paths'),
+                    map(
+                        lambda it: it.load(),
+                        entry_points(group='geyser.profile')
+                    )
+                )
+            )))
+        ]
+
+    @classmethod
     def _load_profile(cls, path: Text) -> Mapping[Text, Any]:
-        suffix = path.split('.')[-1].lower()
-        if exists(abspath(path)):
-            path = abspath(path)
-        else:
-            cls._logger.info(f'File {abspath(path)} does not exist')
-            try:
-                import geyser_lava
-                path = abspath(path_join(dirname(geyser_lava.__file__), 'profile', path))
-            except ModuleNotFoundError:
-                cls._logger.warning('Module geyser-lava has not been installed')
-        if exists(path):
-            return getattr(cls, f'_load_profile_{suffix}', cls._load_profile_)(path)
-        else:
-            raise FileNotFoundError(f'File {abspath(path)} does not exist')
+        for profile_root in cls._profile_search_paths():
+            print(profile_root)
+            profile_path = profile_root.joinpath(path)
+            if profile_path.exists():
+                suffix = path.split('.')[-1].lower()
+                return getattr(cls, f'_load_profile_{suffix}', cls._load_profile_)(str(profile_path))
+
+        raise FileNotFoundError(f'File {path} does NOT exist in ({", ".join(map(lambda it: str(it), cls._profile_search_paths()))})')
 
     @classmethod
     def _load_profile_(cls, path: Text) -> Mapping[Text, Any]:
