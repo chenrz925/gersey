@@ -15,16 +15,16 @@ from typing import Callable, MutableMapping, Mapping, Text, Type, Any, Sequence
 from more_itertools import flatten
 
 if sys.version_info < (3, 10):
-    from importlib_metadata import entry_points
-else:
     try:
-        from importlib.metadata import entry_points
+        from importlib_metadata import entry_points
     except ModuleNotFoundError:
         from pkg_resources import iter_entry_points
 
 
         def entry_points(*args, **kwargs):
             return tuple(iter_entry_points(*args, **kwargs))
+else:
+    from importlib.metadata import entry_points
 
 import pyhocon
 import toml
@@ -39,7 +39,7 @@ from taskflow.patterns.unordered_flow import Flow as UnorderedFlow
 from .context import Context
 from .typedef import FunctorMeta, AtomMeta
 
-__version__ = '0.4.7'
+__version__ = '0.4.6'
 
 
 class Geyser(object):
