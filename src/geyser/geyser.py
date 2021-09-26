@@ -39,7 +39,7 @@ from taskflow.patterns.unordered_flow import Flow as UnorderedFlow
 from .context import Context
 from .typedef import FunctorMeta, AtomMeta
 
-__version__ = '0.4.6'
+__version__ = '0.4.7'
 
 
 class Geyser(object):

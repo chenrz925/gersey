@@ -39,9 +39,12 @@ class Context(object):
         self._atoms = OrderedDict()
         self._root_flow = None
         self._engine = None
-        self._logger = get_logger(f'{self.__class__.__module__}.{self.__class__.__name__}')
-        self.inject_atoms(self._profile['tasks'] if 'tasks' in self._profile else [])
-        self.inject_flow(self._profile['flow'] if 'flow' in self._profile else {})
+        self._logger = get_logger(
+            f'{self.__class__.__module__}.{self.__class__.__name__}')
+        self.inject_atoms(self._profile['tasks']
+                          if 'tasks' in self._profile else [])
+        self.inject_flow(self._profile['flow']
+                         if 'flow' in self._profile else {})
         self.inject_engine()
 
     def _parse_module(self, reference: Text) -> Text:
@@ -62,18 +65,28 @@ class Context(object):
             return self._functors[reference]
 
     def _rename_provide(self, provide: Sequence[Text], rename: Mapping[Text, Text]) -> Sequence[Text]:
-        return list(map(
-            lambda it: rename[it] if it in rename else it,
-            provide
-        ))
+        if isinstance(provide, set):
+            return set(map(
+                lambda it: rename[it] if it in rename else it,
+                provide
+            ))
+        else:
+            return list(map(
+                lambda it: rename[it] if it in rename else it,
+                provide
+            ))
 
     def _build_atom(self, profile: MutableMapping[Text, Text]) -> Atom:
         reference: Text = profile['reference']
         name: Text = profile['name']
-        inject: MutableMapping[Text, Text] = profile['inject'] if 'inject' in profile else {}
-        rebind: Mapping[Text, Text] = profile['rebind'] if 'rebind' in profile else {}
-        rename: Mapping[Text, Text] = profile['rename'] if 'rename' in profile else {}
-        revert_rebind: Mapping[Text, Text] = profile['revert_rebind'] if 'revert_rebind' in profile else {}
+        inject: MutableMapping[Text,
+                               Text] = profile['inject'] if 'inject' in profile else {}
+        rebind: Mapping[Text,
+                        Text] = profile['rebind'] if 'rebind' in profile else {}
+        rename: Mapping[Text,
+                        Text] = profile['rename'] if 'rename' in profile else {}
+        revert_rebind: Mapping[Text,
+                               Text] = profile['revert_rebind'] if 'revert_rebind' in profile else {}
 
         inject['logger'] = get_logger(reference)
         meta = self._access_atom_class(reference)
@@ -86,26 +99,32 @@ class Context(object):
     def _build_functor(self, profile: MutableMapping[Text, Text]) -> Atom:
         reference: Text = profile['reference']
         name: Text = profile['name']
-        inject: Mapping[Text, Text] = profile['inject'] if 'inject' in profile else {}
-        rebind: Mapping[Text, Text] = profile['rebind'] if 'rebind' in profile else {}
-        rename: Mapping[Text, Text] = profile['rename'] if 'rename' in profile else {}
+        inject: Mapping[Text,
+                        Text] = profile['inject'] if 'inject' in profile else {}
+        rebind: Mapping[Text,
+                        Text] = profile['rebind'] if 'rebind' in profile else {}
+        rename: Mapping[Text,
+                        Text] = profile['rename'] if 'rename' in profile else {}
         typename: Text = profile['type'] if 'type' in profile else "functor"
 
         inject['logger'] = get_logger(reference)
         meta = self._access_functor(reference)
         if typename == 'mapper':
             return MapFunctorTask(
-                functor=meta.functor, name=name, provides=self._rename_provide(meta.provides, rename),
+                functor=meta.functor, name=name, provides=self._rename_provide(
+                    meta.provides, rename),
                 requires=meta.requires, rebind=rebind, inject=inject
             )
         elif typename == 'reducer':
             return ReduceFunctorTask(
-                functor=meta.functor, name=name, provides=self._rename_provide(meta.provides, rename),
+                functor=meta.functor, name=name, provides=self._rename_provide(
+                    meta.provides, rename),
                 requires=meta.requires, rebind=rebind, inject=inject
             )
         else:
             return FunctorTask(
-                execute=meta.functor, name=name, provides=self._rename_provide(meta.provides, rename),
+                execute=meta.functor, name=name, provides=self._rename_provide(
+                    meta.provides, rename),
                 requires=meta.requires, rebind=rebind, inject=inject
             )
 
@@ -119,7 +138,8 @@ class Context(object):
 
     def inject_atoms(self, profile: Sequence[Mapping[Text, Any]]):
         self._atoms.clear()
-        self._atoms.update(map(lambda it: (it['name'], self._build(it)), profile))
+        self._atoms.update(
+            map(lambda it: (it['name'], self._build(it)), profile))
 
     def _build_flow(self, profile: Mapping[Text, Any]) -> Flow:
         name: Text = profile['name']
@@ -157,10 +177,12 @@ class Context(object):
                 self._root_flow,
                 engine=self._profile['engine'] if 'engine' in self._profile else 'serial'
             )
-        self._engine.storage.inject(self._profile['inject'] if 'inject' in self._profile else {})
+        self._engine.storage.inject(
+            self._profile['inject'] if 'inject' in self._profile else {})
         self._engine.compile()
         self._logger.info(f'Finish compiling engine.')
-        self._logger.info(f'Engine compilation:\n{self._engine.compilation.execution_graph.pformat()}')
+        self._logger.info(
+            f'Engine compilation:\n{self._engine.compilation.execution_graph.pformat()}')
         self._engine.prepare()
         self._logger.info('Finish preparing engine.')
         self._engine.validate()
@@ -168,4 +190,5 @@ class Context(object):
 
     def __call__(self, *args, **kwargs):
         ret = self._engine.run()
-        self._logger.info(f'Engine statistics:\n{dump(self._engine.statistics)}')
+        self._logger.info(
+            f'Engine statistics:\n{dump(self._engine.statistics)}')
