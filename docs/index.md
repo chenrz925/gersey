@@ -12,6 +12,13 @@
 ![GitHub last commit](https://img.shields.io/github/last-commit/chenrz925/geyser-lava?label=Lava&style=for-the-badge)
 ![PyPI - Status](https://img.shields.io/pypi/status/geyser-lava?label=Lava&style=for-the-badge)
 
+Geyser是一个低代码任务编排与运行框架，适用于小任务之间的解耦与参数化定义。
+
+特点：
+- 能够支持多重配置文件格式，包括JSON、YAML、TOML、HOCON以及Apple pList。
+- 有向无环图（DAG）并行化任务，提高任务执行效率
+- 低代码运行，任务参数与代码解耦
+
 ## 快速使用
 
 首先，安装`geyser`与`geyser-lava`。
