@@ -1,0 +1,5 @@
+mkdocs-autorefs>=0.3.0
+mkdocs-i18n>=0.4.2
+mkdocs-material>=7.3.0
+mkdocs-material-extensions>=1.0.3
+mkdocstrings>=0.16.1
