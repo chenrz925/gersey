@@ -1,0 +1,47 @@
+site_name: Geyser
+theme:
+  name: material
+  language: 'zh'
+  palette:
+    primary: 'amber'
+    accent: 'light blue'
+  favicon: images/favicon-32x32.png
+  logo: images/android-chrome-512x512.png
+  features:
+  - header.autohide
+  - navigation.expand
+plugins:
+- search
+- mkdocstrings:
+    watch:
+      - src
+    enable_inventory: true
+    handlers:
+      python:
+        rendering:
+          show_source: false
+          members_order: source
+        import:
+          - https://docs.openstack.org/taskflow/latest/objects.inv
+          - https://docs.python.org/zh-cn/3/objects.inv
+- i18n:
+    languages:
+      zh: "中文"
+      en: "English"
+    default_language: zh
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/chenrz925/
+  alternate:
+  - name: 中文
+    link: ""
+    lang: zh
+  - name: English
+    link: index.en/
+    lang: en
+markdown_extensions:
+  - pymdownx.highlight
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences

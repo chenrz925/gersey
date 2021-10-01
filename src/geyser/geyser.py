@@ -43,6 +43,25 @@ __version__ = '0.4.7'
 
 
 class Geyser(object):
+    """
+    # 基本用法
+
+    从`geyser`导入`Geyser`类。
+
+    Example:
+
+    ```python
+    from geyser import Geyser
+    ```
+
+    `Geyser`类是Geyser的入口，同时你也可以通过[Geyser.task][geyser.Geyser.task]和[Geyser.functor][geyser.Geyser.functor]引入你自定义的任务。
+
+    Raises:
+        FileNotFoundError: 当配置文件路径搜索不到文件时，会触发该异常。
+        NotImplementedError: 当配置文件格式不受支持时，会触发该异常。
+    
+    
+    """
     _atom_classes: MutableMapping[Text, AtomMeta] = OrderedDict()
     _functors: MutableMapping[Text, FunctorMeta] = OrderedDict()
     _flow_classes: Mapping[Text, Type[Flow]] = OrderedDict((
@@ -61,6 +80,71 @@ class Geyser(object):
             requires: Sequence[Text] = (),
             revert_requires: Sequence[Text] = ()
     ) -> Callable[[Type[Atom]], Type[Atom]]:
+        """
+
+        # 任务注册器
+
+        注册一个任务，你可以完全继承[Atom][taskflow.atom.Atom]来定义任务所有的行为，也可以通过继承[Task][taskflow.task.Task]来简单定义任务行为。
+
+        ## 提供参数
+
+        任务的返回值需要按照[Results specification](https://docs.openstack.org/taskflow/latest/user/arguments_and_results.html#results-specification)中返回值的规定。
+        
+        简单来讲，即符合以下规则：
+
+        |`provides`类型|示例      |返回值                  |
+        |-------------|----------|-----------------------|
+        |`tuple(...)` |`('foo',)`|`return 'FOO',`        |
+        |`set(...)`   |`{'set',}`|`return {'foo': 'FOO'}`|
+
+        Warning:
+            当`provides`只包含一个参数名时，需要在返回值时确保返回的参数被打包成序列的形式。
+
+            Example:
+                ```python
+                from geyser import Geyser
+                from taskflow.task import Task
+
+                @Geyser.task(provides=('foo',))
+                class Foo(Task):
+                    def execute(self, foo):
+                        return 'FOO', # 或者 ['FOO']
+                        #           ^ 注意这里的逗号！
+                ```
+        
+        ## 注入日志记录器
+
+        当`execute`函数中定义了logger参数，Geyser将自动注入一个[Logger][logging.Logger]实例，但logger作为参数不需要在`provides`中定义。
+
+        ## 其他
+
+        关于任务行为的定义方法，详见[Task][taskflow.task.Task]。
+
+        `Geyser.task`是一个装饰器函数，如果需要显式调用，可以依照如下方式。
+
+        Example:
+            ```python
+            from geyser import Geyser
+            from taskflow.task import Task
+
+            class Foo(Task):
+                def execute(self, foo):
+                    return 'FOO', # 或者 ['FOO']
+                    #           ^ 注意这里的逗号！
+            
+            Geyser.task(provides=('foo',))(Foo)
+            ```
+        
+        `Geyser.task`不会改变代码原类定义的任何性质，仍然可以通过显式调用的方式对任务进行调用。
+
+        Args:
+            provides (Sequence[Text], optional): 任务提供的参数。
+            requires (Sequence[Text], optional): 任务依赖的参数。
+            revert_requires (Sequence[Text], optional): 任务回退提供的参数。
+
+        Returns:
+            Callable[[Type[Atom]], Type[Atom]]: 注册函数。
+        """
         def wrapper(atom: Type[Atom]) -> Type[Atom]:
             reference = f'{atom.__module__}.{atom.__name__}'
             if issubclass(atom, Atom):
@@ -83,6 +167,24 @@ class Geyser(object):
             requires: Sequence[Text] = (),
             revert_requires: Sequence[Text] = ()
     ) -> Callable[[Callable], Callable]:
+        """
+        函数注册器
+
+        通过[FunctorTask][taskflow.task.FunctorTask]对函数进行封装，注册封装后的`FunctorTask`。
+
+        其他特性与[Geyser.task][geyser.Geyser.task]相同。
+
+        Warning:
+            通过Geyser进行任务编排时位置形参会失效，需要再次封装将位置形参作为某个参数传入函数，关于这方面的语言特定详见[函数定义](https://docs.python.org/zh-cn/3/reference/compound_stmts.html#function-definitions)。
+
+        Args:
+            provides (Sequence[Text], optional): [description]. Defaults to ().
+            requires (Sequence[Text], optional): [description]. Defaults to ().
+            revert_requires (Sequence[Text], optional): [description]. Defaults to ().
+
+        Returns:
+            Callable[[Callable], Callable]: [description]
+        """
         def wrapper(functor: Callable) -> Callable:
             reference = f'{functor.__module__}.{"".join(map(lambda it: it.capitalize(), functor.__name__.split("_")))}'
             if isfunction(functor):
@@ -275,6 +377,20 @@ class Geyser(object):
 
     @classmethod
     def entry(cls):
+        """
+        # 入口
+
+        Geyser主程序入口。
+
+
+        Example:
+            ```bash
+            # 通过`geyser`命令
+            geyser --help
+            # 通过调用`geyser`包：
+            python -m geyser --help
+            ```
+        """
         ns = cls._build_parser().parse_args()
         cls._setting_module_path()
         cls._setting_logging(ns)
