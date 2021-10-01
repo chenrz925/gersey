@@ -46,11 +46,8 @@ def inject_logger(type_, *args, **kwargs):
 
     首个参数必须为该类构造或函数，之后为调用调用该类构造或函数的参数。
 
-    Args:
-        type_ ([type]): [description]
-
     Returns:
-        [type]: [description]
+        object: 原函数或类构造函数的输出
     """
     sig = signature(type_)
     if 'logger' in kwargs:
