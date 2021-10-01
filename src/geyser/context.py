@@ -4,7 +4,7 @@ from importlib import import_module
 from json import loads
 from logging import getLogger as get_logger
 from pkgutil import get_data
-from typing import Mapping, Text, Any, Type, Sequence, List, Optional, MutableMapping
+from typing import Mapping, Text, Any, Type, Sequence, List, MutableMapping, Union
 
 from jsonschema import validate
 from taskflow import engines
@@ -144,7 +144,7 @@ class Context(object):
     def _build_flow(self, profile: Mapping[Text, Any]) -> Flow:
         name: Text = profile['name']
         typename: Text = profile['type']
-        include: List[Optional[Text, Mapping[Text, Any]]] = profile['include']
+        include: List[Union[Text, Mapping[Text, Any]]] = profile['include']
 
         flow = self._flow_classes[typename](name)
         for it in include:
