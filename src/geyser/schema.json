@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
-  "$id": "https://geyser.waterch.cn/schema",
+  "$id": "https://geyser.waterch.cn/schema.json",
   "$defs": {
     "reference": {
       "type": "string",

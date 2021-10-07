@@ -16,7 +16,7 @@ Geyser是一个低代码任务编排与运行框架，适用于小任务之间�
 
 特点：
 
-- 能够支持多重配置文件格式，包括JSON、YAML、TOML、HOCON以及Apple pList。
+- 能够支持多种配置文件格式，包括JSON、YAML、TOML、HOCON以及Apple pList。
 - 有向无环图（DAG）并行化任务，提高任务执行效率
 - 低代码运行，任务参数与代码解耦
 
