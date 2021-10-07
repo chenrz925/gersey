@@ -24,6 +24,9 @@ plugins:
         import:
           - https://docs.openstack.org/taskflow/latest/objects.inv
           - https://docs.python.org/zh-cn/3/objects.inv
+          - https://pytorch.org/docs/stable/objects.inv
+          - https://pytorch.org/vision/stable/objects.inv
+          - https://pytorch.org/ignite/objects.inv
 - i18n:
     languages:
       zh: "中文"

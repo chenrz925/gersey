@@ -1,16 +1,9 @@
 # 欢迎
 
 ![GitHub](https://img.shields.io/github/license/chenrz925/geyser?style=for-the-badge)
-
-![PyPI](https://img.shields.io/pypi/v/geyser?label=Geyser&style=for-the-badge)
-![GitHub commit activity](https://img.shields.io/github/commit-activity/m/chenrz925/geyser?label=Geyser&style=for-the-badge)
-![GitHub last commit](https://img.shields.io/github/last-commit/chenrz925/geyser?label=Geyser&style=for-the-badge)
-![PyPI - Status](https://img.shields.io/pypi/status/geyser?label=Geyser&style=for-the-badge)
-
-![PyPI](https://img.shields.io/pypi/v/geyser-lava?label=Lava&style=for-the-badge)
-![GitHub commit activity](https://img.shields.io/github/commit-activity/m/chenrz925/geyser-lava?label=Lava&style=for-the-badge)
-![GitHub last commit](https://img.shields.io/github/last-commit/chenrz925/geyser-lava?label=Lava&style=for-the-badge)
-![PyPI - Status](https://img.shields.io/pypi/status/geyser-lava?label=Lava&style=for-the-badge)
+![PyPI](https://img.shields.io/pypi/v/geyser?style=for-the-badge)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/m/chenrz925/geyser?style=for-the-badge)
+![PyPI - Status](https://img.shields.io/pypi/status/geyser?style=for-the-badge)
 
 Geyser是一个低代码任务编排与运行框架，适用于小任务之间的解耦与参数化定义。
 
