@@ -156,7 +156,7 @@ Geyser会按以下优先级选择编辑器：
 
 ```json
 {
-  "$schema": "https://geyser.waterch.cn/schema.json",
+  "$schema": "https://geyser.waterch.cn/zh_CN/latest/schema.json",
   "tasks": [
     {
       "reference": "geyser_lava.task.utility.IdProvider",
@@ -345,7 +345,7 @@ Geyser会按以下优先级选择编辑器：
 ### YAML
 
 ```yaml
-$schema: https://geyser.waterch.cn/schema.json
+$schema: https://geyser.waterch.cn/zh_CN/latest/schema.json
 tasks:
   - reference: geyser_lava.task.utility.IdProvider
     name: id
@@ -473,7 +473,7 @@ engine: serial
 ### TOML
 
 ```toml
-"$schema" = "https://geyser.waterch.cn/schema.json"
+"$schema" = "https://geyser.waterch.cn/zh_CN/latest/schema.json"
 engine = "serial"
 
 [[tasks]]
@@ -607,7 +607,7 @@ include = [ "id", "path", "dataset_root", "vision_transform", "train_dataset_par
 ### HOCON
 
 ```hocon
-"$schema" = "https://geyser.waterch.cn/schema.json"
+"$schema" = "https://geyser.waterch.cn/zh_CN/latest/schema.json"
 tasks = [
   {
     reference = "geyser_lava.task.utility.IdProvider"
@@ -800,7 +800,7 @@ engine = "serial"
 <plist version="1.0">
 <dict>
 	<key>$schema</key>
-	<string>https://geyser.waterch.cn/schema.json</string>
+	<string>https://geyser.waterch.cn/zh_CN/latest/schema.json</string>
 	<key>engine</key>
 	<string>serial</string>
 	<key>flow</key>
