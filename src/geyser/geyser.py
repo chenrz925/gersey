@@ -39,7 +39,7 @@ from taskflow.patterns.unordered_flow import Flow as UnorderedFlow
 from .context import Context
 from .typedef import FunctorMeta, AtomMeta
 
-__version__ = '0.4.8'
+__version__ = '0.4.9'
 
 
 class Geyser(object):
@@ -145,6 +145,7 @@ class Geyser(object):
         Returns:
             Callable[[Type[Atom]], Type[Atom]]: 注册函数。
         """
+
         def wrapper(atom: Type[Atom]) -> Type[Atom]:
             reference = f'{atom.__module__}.{atom.__name__}'
             if issubclass(atom, Atom):
@@ -185,6 +186,7 @@ class Geyser(object):
         Returns:
             Callable[[Callable], Callable]: [description]
         """
+
         def wrapper(functor: Callable) -> Callable:
             reference = f'{functor.__module__}.{"".join(map(lambda it: it.capitalize(), functor.__name__.split("_")))}'
             if isfunction(functor):
@@ -223,7 +225,6 @@ class Geyser(object):
     @classmethod
     def _load_profile(cls, path: Text) -> Mapping[Text, Any]:
         for profile_root in cls._profile_search_paths():
-            print(profile_root)
             profile_path = profile_root.joinpath(path)
             if profile_path.exists():
                 suffix = path.split('.')[-1].lower()
@@ -293,7 +294,7 @@ class Geyser(object):
         )
         parser.add_argument(
             '-l', '--log',
-            nargs='+'
+            nargs='1'
         )
         parser.add_argument(
             '-q', '--quiet',
@@ -310,6 +311,13 @@ class Geyser(object):
         return parser
 
     @classmethod
+    def _map_logname(cls, name: Text, level: Text) -> Text:
+        if name.endswith('.log'):
+            return name.replace('.log', f'.{level}.log')
+        else:
+            return f'{name}.{level}.log'
+
+    @classmethod
     def _setting_logging(cls, ns):
         handlers = {}
         if not ns.quiet and not ns.log:
@@ -323,15 +331,22 @@ class Geyser(object):
             sys.stdin.close()
             sys.stdin = open('/dev/null', 'r')
             sys.stdout.close()
-            sys.stdout = open('/dev/null', 'r')
+            sys.stdout = open('/dev/null', 'w')
             sys.stderr.close()
             sys.stderr = open('/dev/null', 'w')
-        handlers.update(map(lambda it: (f'file{it[0]}', {
+        handlers.update(map(lambda it: (f'debug_{it[0]}', {
             'class': 'logging.handlers.TimedRotatingFileHandler',
             'formatter': 'plain',
             'level': 'DEBUG',
             'when': 'D',
-            'filename': it[1]
+            'filename': cls._map_logname(it[1], 'DEBUG')
+        }), enumerate(ns.log if ns.log else [])))
+        handlers.update(map(lambda it: (f'info_{it[0]}', {
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'formatter': 'colored',
+            'level': 'INFO',
+            'when': 'D',
+            'filename': cls._map_logname(it[1], 'INFO')
         }), enumerate(ns.log if ns.log else [])))
         logging_config.dictConfig({
             'version': 1,

@@ -172,7 +172,7 @@ setup(
         'colorlog>=6.4.1',
         'pyhocon>=0.3.58',
         'setproctitle>=1.2.2',
-        'more_itertools>=8.8.0'
+        'more-itertools>=8.8.0'
     ],  # Optional
 
     tests_require=[
