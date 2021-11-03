@@ -39,7 +39,7 @@ from taskflow.patterns.unordered_flow import Flow as UnorderedFlow
 from .context import Context
 from .typedef import FunctorMeta, AtomMeta
 
-__version__ = '0.4.9'
+__version__ = '0.4.10'
 
 
 class Geyser(object):
@@ -294,7 +294,7 @@ class Geyser(object):
         )
         parser.add_argument(
             '-l', '--log',
-            nargs='1'
+            nargs=1
         )
         parser.add_argument(
             '-q', '--quiet',
