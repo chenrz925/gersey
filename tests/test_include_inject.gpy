@@ -1,0 +1,8 @@
+from geyser import include, inject, name
+
+name('hello2')
+include('tests/test_name_export.gpy')
+inject('hello')
+
+hello.hello()
+print(hello)

@@ -1,0 +1,12 @@
+from geyser import name, export
+
+name('hello')
+
+
+def hello():
+    print('Hello, Geyser!')
+
+
+print(hello)
+
+export('hello')
